@@ -7,24 +7,6 @@ spring:
   application:
     name: API-GATEWAY-SERVICE
   cloud:
-    gateway:
-      routes:
-        - id: EXCHANGE-SERVICE
-          uri: lb://EXCHANGE-SERVICE
-          predicates:
-            - Path=/stockExchange/**
-        - id: COMPANY-SERVICE
-          uri: lb://COMPANY-SERVICE
-          predicates:
-            - Path=/company/**
-        - id: EXCEL-SERVICE
-          uri: lb://EXCEL-SERVICE
-          predicates:
-            - Path=/excel/**
-        - id: SECTOR-SERVICE
-          uri: lb://SECTOR-SERVICE
-          predicates:
-            - Path=/sectors/**
     discovery:
       locator:
         enabled: true

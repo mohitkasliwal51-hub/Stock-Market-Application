@@ -13,25 +13,12 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>eureka-service</name>
 	<description>Eureka Server for Service Discovery</description>
-	<properties>
-		<java.version>11</java.version>
-		<spring-cloud.version>2020.0.3</spring-cloud.version>
-	</properties>
+<!-- Remove this section entirely - use parent's java.version and spring-cloud.version -->
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
 		</dependency>
 	</dependencies>
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+	<!-- Remove this - inherited from parent pom -->
 </project>
