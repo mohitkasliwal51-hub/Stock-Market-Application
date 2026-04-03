@@ -21,5 +21,10 @@ public class StockService {
 	public Stock addStock(Stock stock) {
 		return stockRepository.save(stock);
 	}
+	
+	// New method to handle multiple stocks
+	public List<Stock> addStocks(List<Stock> stocks) {
+		return stockRepository.saveAll(stocks);
+	}
 
 }

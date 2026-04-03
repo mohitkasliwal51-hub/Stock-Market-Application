@@ -11,7 +11,14 @@ import jakarta.persistence.OneToMany;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 public class Sector {
 
 	@Id
@@ -26,47 +33,11 @@ public class Sector {
 	@JsonProperty(access = Access.WRITE_ONLY)
 	private List<Company> companies;
 
-	public Sector() {
-		super();
-	}
-
 	public Sector(int id, String name, String brief) {
 		super();
 		this.id = id;
 		this.setName(name);
 		this.setBrief(brief);
-	}
-	
-	public List<Company> getCompanies() {
-		return companies;
-	}
-
-	public void setCompanies(List<Company> companies) {
-		this.companies = companies;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getBrief() {
-		return brief;
-	}
-
-	public void setBrief(String brief) {
-		this.brief = brief;
 	}
 	
 }

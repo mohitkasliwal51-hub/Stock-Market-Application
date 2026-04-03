@@ -9,8 +9,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Entity
 @Table(name="STOCK_EXCHANGE")
+@Getter
+@Setter
+@NoArgsConstructor
 public class StockExchange {
 	
 	@Id
@@ -29,10 +36,6 @@ public class StockExchange {
 	
 	@OneToOne(cascade = {CascadeType.ALL})
 	private Address address;
-	
-	public StockExchange() {
-		super();
-	}
 
 	public StockExchange(int id, String name, String brief, String remarks, Address addressId) {
 		super();
@@ -41,46 +44,6 @@ public class StockExchange {
 		this.brief = brief;
 		this.remarks = remarks;
 		this.address = addressId;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getBrief() {
-		return brief;
-	}
-
-	public void setBrief(String brief) {
-		this.brief = brief;
-	}
-
-	public String getRemarks() {
-		return remarks;
-	}
-
-	public void setRemarks(String remarks) {
-		this.remarks = remarks;
-	}
-
-	public Address getAddress() {
-		return address;
-	}
-
-	public void setAddress(Address address) {
-		this.address = address;
 	}
 	
 }

@@ -7,8 +7,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Entity
 @Table(name = "ADDRESS")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Address {
 	
 	@Id
@@ -27,10 +34,6 @@ public class Address {
 	
 	@Column(name = "ZIPCODE")
 	private int zipCode;
-	
-	public Address() {
-		
-	}
 
 	public Address(int id, String street, String city, String country, int zipCode) {
 		super();
@@ -38,46 +41,6 @@ public class Address {
 		this.street = street;
 		this.city = city;
 		this.country = country;
-		this.zipCode = zipCode;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public String getStreet() {
-		return street;
-	}
-
-	public void setStreet(String street) {
-		this.street = street;
-	}
-
-	public String getCity() {
-		return city;
-	}
-
-	public void setCity(String city) {
-		this.city = city;
-	}
-
-	public String getCountry() {
-		return country;
-	}
-
-	public void setCountry(String country) {
-		this.country = country;
-	}
-
-	public int getZipCode() {
-		return zipCode;
-	}
-
-	public void setZipCode(int zipCode) {
 		this.zipCode = zipCode;
 	}
 

@@ -2,15 +2,34 @@ server:
   port: 8080
 
 spring:
+  application:
+    name: API-GATEWAY
   config:
     import: optional:configserver:http://localhost:8090
   main:
     web-application-type: reactive
-  application:
-    name: API-GATEWAY-SERVICE
   cloud:
-    discovery:
-      locator:
-        enabled: true
+    gateway:
+      discovery:
+        locator:
+          enabled: true
 
+# SpringDoc OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+  show-actuator: true
 
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+
+# Gateway Routes - Handled in Java Config

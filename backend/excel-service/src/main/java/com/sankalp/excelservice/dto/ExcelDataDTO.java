@@ -2,58 +2,31 @@ package com.sankalp.excelservice.dto;
 
 import java.sql.Timestamp;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExcelDataDTO {
 	
+	@NotNull(message = "Company ID cannot be null")
+	@Positive(message = "Company ID must be positive")
 	private int companyId;
 	
+	@NotNull(message = "Exchange ID cannot be null")
+	@Positive(message = "Exchange ID must be positive")
 	private int exchangeId;
 	
+	@NotNull(message = "Price cannot be null")
+	@Positive(message = "Price must be positive")
 	private double price;
 	
 	private Timestamp timestamp;
-	
-	public ExcelDataDTO() {
-		super();
-	}
-
-	public ExcelDataDTO(int companyId, int exchangeId, double price, Timestamp timestamp) {
-		super();
-		this.companyId = companyId;
-		this.exchangeId = exchangeId;
-		this.price = price;
-		this.timestamp = timestamp;
-	}
-
-	public int getCompanyId() {
-		return companyId;
-	}
-
-	public void setCompanyId(int companyId) {
-		this.companyId = companyId;
-	}
-
-	public int getExchangeId() {
-		return exchangeId;
-	}
-
-	public void setExchangeId(int exchangeId) {
-		this.exchangeId = exchangeId;
-	}
-
-	public double getPrice() {
-		return price;
-	}
-
-	public void setPrice(double price) {
-		this.price = price;
-	}
-
-	public Timestamp getTimestamp() {
-		return timestamp;
-	}
-
-	public void setTimestamp(Timestamp timestamp) {
-		this.timestamp = timestamp;
-	}
 	
 }

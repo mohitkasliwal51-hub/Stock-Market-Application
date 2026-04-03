@@ -30,4 +30,8 @@ public class StockExchangeService {
 		return null;
 	}
 	
+	public void deleteStockExchange(int id) {
+		stockExchangeRepository.deleteById(id);
+	}
+	
 }

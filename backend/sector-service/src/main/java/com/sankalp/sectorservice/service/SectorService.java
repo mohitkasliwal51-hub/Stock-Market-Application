@@ -40,4 +40,8 @@ public class SectorService {
 		return null;
 	}
 	
+	public void deleteSector(int id) {
+		repository.deleteById(id);
+	}
+	
 }

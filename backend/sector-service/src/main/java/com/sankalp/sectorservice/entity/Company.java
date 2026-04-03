@@ -6,7 +6,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 public class Company {
 
 	@Id
@@ -26,10 +33,6 @@ public class Company {
 	@ManyToOne
 	private Sector sector;
 
-	public Company() {
-		super();
-	}
-
 	public Company(int id, String name, long turnover, String ceo, String brief, Sector sector) {
 		super();
 		this.id = id;
@@ -38,62 +41,6 @@ public class Company {
 		this.ceo = ceo;
 		this.brief = brief;
 		this.sector = sector;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public long getTurnover() {
-		return turnover;
-	}
-
-	public void setTurnover(long turnover) {
-		this.turnover = turnover;
-	}
-
-	public String getCeo() {
-		return ceo;
-	}
-
-	public void setCeo(String ceo) {
-		this.ceo = ceo;
-	}
-
-	public String getBrief() {
-		return brief;
-	}
-
-	public void setBrief(String brief) {
-		this.brief = brief;
-	}
-
-	public Sector getSector() {
-		return sector;
-	}
-
-	public void setSector(Sector sector) {
-		this.sector = sector;
-	}
-
-	public String getBod() {
-		return bod;
-	}
-
-	public void setBod(String bod) {
-		this.bod = bod;
 	}
 	
 }

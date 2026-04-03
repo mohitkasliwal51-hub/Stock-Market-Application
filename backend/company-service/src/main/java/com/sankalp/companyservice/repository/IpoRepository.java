@@ -15,4 +15,6 @@ public interface IpoRepository extends JpaRepository<Ipo, Integer>{
 	
 	public Ipo findByCompanyId(@Param("companyId") int companyId);
 
+	boolean existsByCompanyId(int companyId);
+
 }

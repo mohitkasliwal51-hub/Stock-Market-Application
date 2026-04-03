@@ -20,6 +20,7 @@ public class StockPriceService {
 		return stockPriceRepository.findAll();
 	}
 	
+	// Keep existing method for Excel upload
 	public List<ExcelDataDTO> addStockPrices(List<ExcelDataDTO> excelData){
 		List<ExcelDataDTO> failedInserts = new ArrayList<>();
 		for(ExcelDataDTO data:excelData) {
@@ -30,6 +31,16 @@ public class StockPriceService {
 			}			
 		}
 		return failedInserts;
+	}
+	
+	// New method for API calls with StockPrice entities
+	public List<StockPrice> addStockPriceEntities(List<StockPrice> stockPrices) {
+		try {
+			return stockPriceRepository.saveAll(stockPrices);
+		} catch(Exception e) {
+			// Return empty list or handle error appropriately
+			return new ArrayList<>();
+		}
 	}
 	
 	public List<StockPrice> getStockPriceByCompany(int companyId, int exchangeId, String before, String after){

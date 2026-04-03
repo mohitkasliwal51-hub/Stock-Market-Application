@@ -23,6 +23,11 @@ public class IpoService {
 		return ipoRepository.save(ipo);
 	}
 	
+	// New method to handle multiple IPOs
+	public List<Ipo> addIpos(List<Ipo> ipos) {
+		return ipoRepository.saveAll(ipos);
+	}
+	
 	public Ipo getIpoByCompany(int id){
 		return ipoRepository.findByCompanyId(id);
 	}

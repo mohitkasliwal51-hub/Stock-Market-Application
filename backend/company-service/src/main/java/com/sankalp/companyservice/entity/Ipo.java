@@ -9,7 +9,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 public class Ipo {
 
 	@Id
@@ -33,10 +40,6 @@ public class Ipo {
 	@OneToOne
 	private StockExchange stockExchange;
 
-	public Ipo() {
-		super();
-	}
-
 	public Ipo(int id, double pricePerShare, int totalShares, Timestamp dateTime, String remarks, Company company,
 			StockExchange stockExchange) {
 		super();
@@ -46,62 +49,6 @@ public class Ipo {
 		this.dateTime = dateTime;
 		this.remarks = remarks;
 		this.company = company;
-		this.stockExchange = stockExchange;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public double getPricePerShare() {
-		return pricePerShare;
-	}
-
-	public void setPricePerShare(double pricePerShare) {
-		this.pricePerShare = pricePerShare;
-	}
-
-	public int getTotalShares() {
-		return totalShares;
-	}
-
-	public void setTotalShares(int totalShares) {
-		this.totalShares = totalShares;
-	}
-
-	public Timestamp getDateTime() {
-		return dateTime;
-	}
-
-	public void setDateTime(Timestamp dateTime) {
-		this.dateTime = dateTime;
-	}
-
-	public String getRemarks() {
-		return remarks;
-	}
-
-	public void setRemarks(String remarks) {
-		this.remarks = remarks;
-	}
-
-	public Company getCompany() {
-		return company;
-	}
-
-	public void setCompany(Company company) {
-		this.company = company;
-	}
-
-	public StockExchange getStockExchange() {
-		return stockExchange;
-	}
-
-	public void setStockExchange(StockExchange stockExchange) {
 		this.stockExchange = stockExchange;
 	}
 	

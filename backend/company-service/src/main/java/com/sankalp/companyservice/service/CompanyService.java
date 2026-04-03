@@ -8,12 +8,20 @@ import org.springframework.stereotype.Service;
 
 import com.sankalp.companyservice.entity.Company;
 import com.sankalp.companyservice.repository.CompanyRepository;
+import com.sankalp.companyservice.repository.IpoRepository;
+import com.sankalp.companyservice.repository.StockRepository;
 
 @Service
 public class CompanyService {
 	
 	@Autowired
 	private CompanyRepository companyRepository;
+
+	@Autowired
+	private StockRepository stockRepository;
+
+	@Autowired
+	private IpoRepository ipoRepository;
 	
 	public List<Company> getAllCompanies(){
 		return companyRepository.findAll();
@@ -40,13 +48,29 @@ public class CompanyService {
 		return null;
 	}
 	
-	public Company deactivateCompany(int id) {
+	public DeleteCompanyResult deactivateCompany(int id) {
 		Company companyToDelete = getCompanyById(id);
-		if(companyToDelete != null) {
-			companyRepository.delete(companyToDelete);
-			return companyToDelete;
+		if(companyToDelete == null) {
+			return new DeleteCompanyResult(
+					DeleteCompanyResult.Status.NOT_FOUND,
+					null,
+					"Company not found with id: " + id);
 		}
-		return null;
+
+		boolean hasStocks = stockRepository.existsByCompanyId(id);
+		boolean hasIpo = ipoRepository.existsByCompanyId(id);
+		if (hasStocks || hasIpo) {
+			return new DeleteCompanyResult(
+					DeleteCompanyResult.Status.BLOCKED_BY_DEPENDENCIES,
+					companyToDelete,
+					"Delete blocked: company is referenced by stock/IPO records");
+		}
+
+		companyRepository.delete(companyToDelete);
+		return new DeleteCompanyResult(
+				DeleteCompanyResult.Status.DELETED,
+				companyToDelete,
+				"Company deactivated successfully");
 	}
 	
 	public List<Company> getCompanyByPattern(String pattern){

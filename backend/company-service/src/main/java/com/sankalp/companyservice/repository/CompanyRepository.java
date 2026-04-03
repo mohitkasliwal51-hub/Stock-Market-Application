@@ -14,7 +14,7 @@ public interface CompanyRepository extends JpaRepository<Company, Integer>{
 	
 	public List<Company> findByNameContainingIgnoreCase(String pattern);
 	
-	@Query(value = "select * from company where id in (select company_id from stock where stock_exchange_id=:exchangeId);", nativeQuery = true)
+	@Query(value = "select * from company where is_deleted = false and id in (select company_id from stock where stock_exchange_id=:exchangeId);", nativeQuery = true)
 	public List<Company> findCompanyByExchangeId(@Param("exchangeId") int id);
 	
 }
