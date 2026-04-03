@@ -1,14 +1,19 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Company } from 'src/app/models/company-model';
 import { Ipo } from 'src/app/models/ipo-model';
 import { AuthService } from 'src/app/services/auth.service';
 import { CompanyService } from 'src/app/services/company.service';
 import { IpoService } from 'src/app/services/ipo.service';
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-ipo',
   templateUrl: './ipo.component.html',
-  styleUrls: ['./ipo.component.css']
+  styleUrls: ['./ipo.component.css'],
+  standalone: true,
+  imports: [CommonModule, RouterLink, NavbarComponent]
 })
 export class IpoComponent implements OnInit {
 

@@ -1,13 +1,17 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Company } from 'src/app/models/company-model';
 import { Sector } from 'src/app/models/sector-model';
 import { AuthService } from 'src/app/services/auth.service';
 import { SectorService } from 'src/app/services/sector.service';
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-sector',
   templateUrl: './sector.component.html',
-  styleUrls: ['./sector.component.css']
+  styleUrls: ['./sector.component.css'],
+  standalone: true,
+  imports: [CommonModule, NavbarComponent]
 })
 export class SectorComponent implements OnInit {
 

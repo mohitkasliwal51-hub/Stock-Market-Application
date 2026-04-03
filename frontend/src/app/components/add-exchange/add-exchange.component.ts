@@ -1,13 +1,18 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from "@angular/router"
 import { Exchange } from 'src/app/models/exchange-model';
 import { AuthService } from 'src/app/services/auth.service';
 import { ExchangeService } from 'src/app/services/exchange.service';
-import {Router} from "@angular/router"
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-add-exchange',
   templateUrl: './add-exchange.component.html',
-  styleUrls: ['./add-exchange.component.css']
+  styleUrls: ['./add-exchange.component.css'],
+  standalone: true,
+  imports: [CommonModule, FormsModule, NavbarComponent]
 })
 export class AddExchangeComponent implements OnInit {
 

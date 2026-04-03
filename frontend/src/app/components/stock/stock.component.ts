@@ -1,16 +1,21 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Company } from 'src/app/models/company-model';
 import { Exchange } from 'src/app/models/exchange-model';
 import { Stock } from 'src/app/models/stock-model';
 import { AuthService } from 'src/app/services/auth.service';
 import { CompanyService } from 'src/app/services/company.service';
 import { ExchangeService } from 'src/app/services/exchange.service';
-import {Router} from "@angular/router"
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-stock',
   templateUrl: './stock.component.html',
-  styleUrls: ['./stock.component.css']
+  styleUrls: ['./stock.component.css'],
+  standalone: true,
+  imports: [CommonModule, FormsModule, NavbarComponent]
 })
 export class StockComponent implements OnInit {
 
@@ -80,7 +85,7 @@ export class StockComponent implements OnInit {
   }
 
   addStock(){
-    this.companyService.addStock(this.stock).subscribe( addedStock => {
+    this.companyService.addStock(this.stock).subscribe((addedStock: Stock) => {
       console.log(addedStock);
     })
     this.router.navigate(['/exchange']);

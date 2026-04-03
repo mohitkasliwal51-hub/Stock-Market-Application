@@ -1,13 +1,17 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ExcelData } from 'src/app/models/excel-data';
 import { AuthService } from 'src/app/services/auth.service';
 import { StockPriceService } from 'src/app/services/stock-price.service';
 import * as XLSX from 'xlsx';
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-excel-data',
   templateUrl: './excel-data.component.html',
-  styleUrls: ['./excel-data.component.css']
+  styleUrls: ['./excel-data.component.css'],
+  standalone: true,
+  imports: [CommonModule, NavbarComponent]
 })
 export class ExcelDataComponent implements OnInit {
 

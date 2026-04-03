@@ -1,4 +1,7 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from "@angular/router"
 import { Company } from 'src/app/models/company-model';
 import { Exchange } from 'src/app/models/exchange-model';
 import { Ipo } from 'src/app/models/ipo-model';
@@ -6,12 +9,14 @@ import { AuthService } from 'src/app/services/auth.service';
 import { CompanyService } from 'src/app/services/company.service';
 import { ExchangeService } from 'src/app/services/exchange.service';
 import { IpoService } from 'src/app/services/ipo.service';
-import {ActivatedRoute, Router} from "@angular/router"
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-add-ipo',
   templateUrl: './add-ipo.component.html',
-  styleUrls: ['./add-ipo.component.css']
+  styleUrls: ['./add-ipo.component.css'],
+  standalone: true,
+  imports: [CommonModule, FormsModule, NavbarComponent]
 })
 export class AddIpoComponent implements OnInit {
 

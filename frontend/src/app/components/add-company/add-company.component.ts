@@ -1,15 +1,20 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from "@angular/router"
 import { Company } from 'src/app/models/company-model';
 import { Sector } from 'src/app/models/sector-model';
 import { AuthService } from 'src/app/services/auth.service';
 import { CompanyService } from 'src/app/services/company.service';
 import { SectorService } from 'src/app/services/sector.service';
-import {ActivatedRoute, Router} from "@angular/router"
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-add-company',
   templateUrl: './add-company.component.html',
-  styleUrls: ['./add-company.component.css']
+  styleUrls: ['./add-company.component.css'],
+  standalone: true,
+  imports: [CommonModule, FormsModule, NavbarComponent]
 })
 export class AddCompanyComponent implements OnInit {
 

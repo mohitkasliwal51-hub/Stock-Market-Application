@@ -1,4 +1,6 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Company } from 'src/app/models/company-model';
 import { Exchange } from 'src/app/models/exchange-model';
 import { StockPrice } from 'src/app/models/stock-price-model';
@@ -7,11 +9,14 @@ import { CompanyService } from 'src/app/services/company.service';
 import { ExchangeService } from 'src/app/services/exchange.service';
 import { StockPriceService } from 'src/app/services/stock-price.service';
 import * as Highcharts from 'highcharts';
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-comparison',
   templateUrl: './comparison.component.html',
-  styleUrls: ['./comparison.component.css']
+  styleUrls: ['./comparison.component.css'],
+  standalone: true,
+  imports: [CommonModule, FormsModule, NavbarComponent]
 })
 export class ComparisonComponent implements OnInit {
 
