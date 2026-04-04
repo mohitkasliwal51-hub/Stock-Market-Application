@@ -21,7 +21,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@CrossOrigin(origins="*")
 @RequestMapping("api/ipos")
 @Tag(name = "IPO Management", description = "Operations for managing Initial Public Offerings")
 public class IpoController {

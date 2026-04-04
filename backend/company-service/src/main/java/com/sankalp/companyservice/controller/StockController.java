@@ -21,7 +21,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@CrossOrigin(origins="*")
 @RequestMapping("api/stocks")
 @Tag(name = "Stock Management", description = "Operations for managing stocks")
 public class StockController {

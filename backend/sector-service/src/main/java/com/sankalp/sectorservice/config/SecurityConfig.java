@@ -1,14 +1,22 @@
 package com.sankalp.sectorservice.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
 
-/**
- * Security configuration class for Sector Service.
- * Security-specific beans can be added here as needed.
- * Infrastructure beans (PasswordEncoder, RestTemplate, etc.) 
- * are managed in ApplicationBeansConfig.
- */
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
-    // Security-specific configurations can be added here
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(authz -> authz
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .anyRequest().permitAll()
+            )
+            .csrf(csrf -> csrf.disable());
+        return http.build();
+    }
 }

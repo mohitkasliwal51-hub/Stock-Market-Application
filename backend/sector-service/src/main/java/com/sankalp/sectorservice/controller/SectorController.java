@@ -24,7 +24,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@CrossOrigin(origins="*")
 @RequestMapping("api/sectors")
 @Tag(name = "Sector Management", description = "Operations for managing sectors and companies")
 public class SectorController {
