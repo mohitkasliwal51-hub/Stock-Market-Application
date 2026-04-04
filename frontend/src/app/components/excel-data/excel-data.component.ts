@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ExcelData } from 'src/app/models/excel-data';
 import { AuthService } from 'src/app/services/auth.service';
-import { StockPriceService } from 'src/app/services/stock-price.service';
+import { ExcelService } from 'src/app/services/excel.service';
 import * as XLSX from 'xlsx';
 import { NavbarComponent } from '../navbar/navbar.component';
 
@@ -20,7 +20,7 @@ export class ExcelDataComponent implements OnInit {
   public unsuccessfullAttempts:number;
   public total:number;
 
-  constructor(private authService:AuthService, private stockPriceService:StockPriceService) {
+  constructor(private authService:AuthService, private excelService:ExcelService) {
     this.state="";
     this.fileData = [];
     this.unsuccessfullAttempts=0;
@@ -61,7 +61,7 @@ export class ExcelDataComponent implements OnInit {
     })
     this.total = excelData.length;
     console.log(excelData);
-    this.stockPriceService.addStockPrice(excelData).subscribe(rowsNotAdded => {
+    this.excelService.uploadData(excelData).subscribe(rowsNotAdded => {
       console.log(rowsNotAdded);
       this.unsuccessfullAttempts = rowsNotAdded.length;
     })

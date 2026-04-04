@@ -8,6 +8,7 @@ import { Stock } from 'src/app/models/stock-model';
 import { AuthService } from 'src/app/services/auth.service';
 import { CompanyService } from 'src/app/services/company.service';
 import { ExchangeService } from 'src/app/services/exchange.service';
+import { StockService } from 'src/app/services/stock.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
@@ -26,7 +27,7 @@ export class StockComponent implements OnInit {
   public companyTitle:string;
   public exchangeTitle:string;
 
-  constructor(private authService:AuthService, private companyService:CompanyService, private exchangeService:ExchangeService, private router: Router) {
+  constructor(private authService:AuthService, private companyService:CompanyService, private exchangeService:ExchangeService, private stockService:StockService, private router: Router) {
     this.state="";
     this.companyTitle="Please choose a company";
     this.exchangeTitle="Please choose a stock exchange";
@@ -85,7 +86,7 @@ export class StockComponent implements OnInit {
   }
 
   addStock(){
-    this.companyService.addStock(this.stock).subscribe((addedStock: Stock) => {
+    this.stockService.addStock(this.stock).subscribe((addedStock: Stock) => {
       console.log(addedStock);
     })
     this.router.navigate(['/exchange']);

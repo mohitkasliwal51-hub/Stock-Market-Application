@@ -1,8 +1,8 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
-import { ExcelData } from '../models/excel-data';
 import { StockPrice } from '../models/stock-price-model';
 
 @Injectable({
@@ -14,23 +14,32 @@ export class StockPriceService {
   private apiPaths: {[apiName:string]: string};
 
   constructor(private httpClient:HttpClient) {
-    this.apiUrl = environment.apiURL;
+    this.apiUrl = environment.apiURL+"/api";
     this.apiPaths = {
-      "getStockPrice":this.apiUrl+"/company/getStockPrices",
-      "addStockPrice":this.apiUrl +"/excel/uploadData"
+      "getAllStockPrices":this.apiUrl+"/stock-prices",
+      "getStockPrice":this.apiUrl+"/stock-prices/by-company",
+      "addStockPrices":this.apiUrl+"/stock-prices"
     }
   }
 
-  public getStockPrices(companyId:number, exchangeId:number, from:string, to:string):Observable<StockPrice[]>{
-    return this.httpClient.get<StockPrice[]>(this.apiPaths.getStockPrice+`/${companyId}/${exchangeId}/${encodeURIComponent(from)}/${encodeURIComponent(to)}`);
+  public getAllStockPrices():Observable<StockPrice[]>{
+    return this.httpClient.get<{data: StockPrice[]}>(this.apiPaths.getAllStockPrices).pipe(map(response => response.data));
   }
 
-  public addStockPrice(excelData:ExcelData[]):Observable<ExcelData[]>{
+  public getStockPrices(companyId:number, exchangeId:number, from:string, to:string):Observable<StockPrice[]>{
+    return this.getStockPricesByCompany(companyId, exchangeId, from, to);
+  }
+
+  public getStockPricesByCompany(companyId:number, exchangeId:number, from:string, to:string):Observable<StockPrice[]>{
+    return this.httpClient.get<{data: StockPrice[]}>(this.apiPaths.getStockPrice+`/${companyId}/${exchangeId}/${encodeURIComponent(from)}/${encodeURIComponent(to)}`).pipe(map(response => response.data));
+  }
+
+  public addStockPrices(stockPrices:StockPrice[]):Observable<StockPrice[]>{
     const httpOptions = {
       headers: new HttpHeaders({
         'Content-Type':  'application/json'
       })
     };
-    return this.httpClient.post<ExcelData[]>(this.apiPaths.addStockPrice, excelData, httpOptions);
+    return this.httpClient.post<{data: StockPrice[]}>(this.apiPaths.addStockPrices, stockPrices, httpOptions).pipe(map(response => response.data));
   }
 }
