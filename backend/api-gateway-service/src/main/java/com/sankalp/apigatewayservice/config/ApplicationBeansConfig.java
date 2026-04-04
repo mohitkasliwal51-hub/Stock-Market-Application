@@ -1,7 +1,6 @@
 package com.sankalp.apigatewayservice.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,13 +22,11 @@ public class ApplicationBeansConfig {
      * Includes connection and read timeouts to prevent hanging requests.
      */
     @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+    public RestTemplate restTemplate() {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(5000);
         requestFactory.setReadTimeout(10000);
-        return builder
-            .requestFactory(() -> requestFactory)
-                .build();
+        return new RestTemplate(requestFactory);
     }
 
     /**

@@ -2,6 +2,7 @@ package com.sankalp.exchangeservice.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,7 @@ public class ApplicationBeansConfig {
      * Includes connection and read timeouts to prevent hanging requests.
      */
     @Bean
+    @LoadBalanced
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(5000);
