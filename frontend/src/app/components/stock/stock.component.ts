@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Company } from 'src/app/models/company-model';
@@ -27,39 +27,15 @@ export class StockComponent implements OnInit {
   public companyTitle:string;
   public exchangeTitle:string;
 
-  constructor(private authService:AuthService, private companyService:CompanyService, private exchangeService:ExchangeService, private stockService:StockService, private router: Router) {
+  constructor(private authService:AuthService, private companyService:CompanyService, private exchangeService:ExchangeService, private stockService:StockService, private router: Router, private cdr: ChangeDetectorRef) {
     this.state="";
     this.companyTitle="Please choose a company";
     this.exchangeTitle="Please choose a stock exchange";
     this.stock={
       "id": 0,
       "stockCode": "",
-      "company": {
-          "id": 0,
-          "name": "",
-          "turnover": 0,
-          "ceo": "",
-          "brief": "",
-          "bod": "",
-          "sector": {
-              "id": 0,
-              "name": "",
-              "brief": ""
-          }
-      },
-      "stockExchange": {
-          "id": 0,
-          "name": "",
-          "brief": "",
-          "remarks": "",
-          "address": {
-              "id": 0,
-              "street": "",
-              "city": "",
-              "country": "",
-              "zipCode": 0
-          }
-      }
+      "companyId": 0,
+      "stockExchangeId": 0
     }
     this.companies=[];
     this.exchanges=[];
@@ -69,25 +45,28 @@ export class StockComponent implements OnInit {
     this.state = this.authService.getCurrentUserRole();
     this.companyService.getAllCompanies().subscribe(companies => {
       this.companies = companies;
+      this.cdr.detectChanges();
     });
     this.exchangeService.getAllExchanges().subscribe(exchanges => {
       this.exchanges = exchanges;
+      this.cdr.detectChanges();
     });
   }
 
   onCompanyClick(company:Company){
-    this.companyTitle = company.name;
-    this.stock.company = company;
+    this.companyTitle = company.companyName || company.name || '';
+    this.stock.companyId = company.id;
   }
 
   onExchangeClick(exchange:Exchange){
     this.exchangeTitle = exchange.name;
-    this.stock.stockExchange = exchange;
+    this.stock.stockExchangeId = exchange.id;
   }
 
   addStock(){
     this.stockService.addStock(this.stock).subscribe((addedStock: Stock) => {
       console.log(addedStock);
+      this.cdr.detectChanges();
     })
     this.router.navigate(['/exchange']);
   }
@@ -96,32 +75,8 @@ export class StockComponent implements OnInit {
     this.stock={
       "id": 0,
       "stockCode": "",
-      "company": {
-          "id": 0,
-          "name": "",
-          "turnover": 0,
-          "ceo": "",
-          "brief": "",
-          "bod": "",
-          "sector": {
-              "id": 0,
-              "name": "",
-              "brief": ""
-          }
-      },
-      "stockExchange": {
-          "id": 0,
-          "name": "",
-          "brief": "",
-          "remarks": "",
-          "address": {
-              "id": 0,
-              "street": "",
-              "city": "",
-              "country": "",
-              "zipCode": 0
-          }
-      }
+      "companyId": 0,
+      "stockExchangeId": 0
     }
     this.companyTitle='Please choose a company';
     this.exchangeTitle='Please choose a stock exchange';

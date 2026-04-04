@@ -8,7 +8,7 @@
           {{companyTitle}}
         </button>
         <ul class="dropdown-menu w-100" aria-labelledby="dropdownMenuButton1">
-          <li class="dropdown-item" *ngFor="let s of companies" (click)="onCompanyClick(s)">{{s.name}}</li>
+          <li class="dropdown-item" *ngFor="let s of companies" (click)="onCompanyClick(s)">{{s.companyName || s.name}}</li>
         </ul>
       </div>
       <div class="dropdown col-xs-10 col-md-6 col-sm-12 col-lg-4  col-xl-4">
@@ -31,7 +31,7 @@
       </div>
     </div>
     <div class="btn-grp row">
-      <button type="submit" class="btn btn-dark col-lg-2 col-md-4 col-sm-5 col-xs-6" (click)="onSubmit()">Submit</button>
+      <button type="button" class="btn btn-dark col-lg-2 col-md-4 col-sm-5 col-xs-6" (click)="onSubmit()">Submit</button>
       <button type="reset" class="btn btn-secondary col-lg-2 col-md-4 col-sm-5 col-xs-6" id="reset-btn" (click)="onReset()">Reset</button>
     </div>
   </form>

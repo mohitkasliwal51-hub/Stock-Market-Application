@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Company } from 'src/app/models/company-model';
+import { Sector } from 'src/app/models/sector-model';
 import { AuthService } from 'src/app/services/auth.service';
 import { CompanyService } from 'src/app/services/company.service';
+import { SectorService } from 'src/app/services/sector.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
@@ -18,22 +20,29 @@ export class CompanyComponent implements OnInit {
 
   public state:string;
   public companies:Company[];
+  public sectors:Sector[];
   public pattern:string;
 
-  constructor(private authService:AuthService, private companyService:CompanyService) {
+  constructor(private authService:AuthService, private companyService:CompanyService, private sectorService:SectorService, private cdr: ChangeDetectorRef) {
     this.state="";
     this.companies=[];
+    this.sectors=[];
     this.pattern="";
   }
 
   ngOnInit(): void {
     this.state = this.authService.getCurrentUserRole();
     this.getAllCompanies();
+    this.sectorService.getAllSectors().subscribe(allSectors => {
+      this.sectors = allSectors;
+      this.cdr.detectChanges();
+    });
   }
 
   public getAllCompanies(){
     this.companyService.getAllCompanies().subscribe( allCompanies => {
       this.companies = allCompanies;
+      this.cdr.detectChanges();
     });
   }
 
@@ -41,6 +50,7 @@ export class CompanyComponent implements OnInit {
     if(this.pattern != ""){
       this.companyService.getCompanyByName(this.pattern).subscribe( foundCompanies => {
         this.companies = foundCompanies;
+        this.cdr.detectChanges();
       });
     } else {
       this.getAllCompanies();
@@ -51,7 +61,24 @@ export class CompanyComponent implements OnInit {
     this.companyService.deleteCompany(id).subscribe( company =>{
       console.log(company);
       this.getAllCompanies();
+      this.cdr.detectChanges();
     })
+  }
+
+  public getCompanyName(company:Company):string{
+    return company.companyName || company.name || '';
+  }
+
+  public getCompanyBrief(company:Company):string{
+    return company.briefWriteup || company.brief || '';
+  }
+
+  public getSectorName(company:Company):string{
+    if (company.sector?.name) {
+      return company.sector.name;
+    }
+    const sector = this.sectors.find(s => s.id === company.sectorId);
+    return sector?.name || 'N/A';
   }
 
 }

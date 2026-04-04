@@ -31,16 +31,12 @@ export class AddCompanyComponent implements OnInit {
     this.companyId = this.activatedRoute.snapshot.params["id"];
     this.company = {
       "id":0,
-      "name": "",
+      "companyName": "",
       "turnover": 0,
       "ceo": "",
-      "brief": "",
-      "bod": "",
-      "sector": {
-          id:0,
-          name:"",
-          brief:""
-      }
+      "briefWriteup": "",
+      "boardOfDirectors": "",
+      "sectorId": 0
     }
   }
 
@@ -48,30 +44,55 @@ export class AddCompanyComponent implements OnInit {
     this.state = this.authService.getCurrentUserRole();
     this.sectorService.getAllSectors().subscribe( sectors => {
       this.sectors=sectors;
+      this.syncSelectedSectorTitle();
     })
     if(this.companyId){
       this.companyService.getCompanyById(this.companyId).subscribe( companyFound => {
         this.company = companyFound;
-        this.dropDownTitle = companyFound.sector.name;
+        this.syncSelectedSectorTitle();
       })
     }
   }
 
   addCompany(){
-    if(this.dropDownTitle == "Please Choose a Sector"){
+    if(this.company.sectorId === 0){
       alert("Please choose a sector");
     } else{
       console.log(this.company);
-      this.companyService.addCompany(this.company).subscribe(addedCompany => {
-        console.log(addedCompany);
-      })
+      if (this.companyId) {
+        this.companyService.updateCompany(this.companyId, this.company).subscribe(updatedCompany => {
+          console.log(updatedCompany);
+        })
+      } else {
+        this.companyService.addCompany(this.company).subscribe(addedCompany => {
+          console.log(addedCompany);
+        })
+      }
       this.router.navigate(['/company']);
     }
   }
 
+  onReset(){
+    this.company = {
+      id: 0,
+      companyName: '',
+      turnover: 0,
+      ceo: '',
+      briefWriteup: '',
+      boardOfDirectors: '',
+      sectorId: 0
+    };
+    this.dropDownTitle = 'Please Choose a Sector';
+  }
+
   onSectorClick(sector:Sector){
     this.dropDownTitle = sector.name;
-    this.company.sector = sector;
+    this.company.sectorId = sector.id;
+  }
+
+  private syncSelectedSectorTitle(){
+    const selectedSector = this.sectors.find(sector => sector.id === this.company.sectorId);
+    this.dropDownTitle = selectedSector?.name || (this.companyId ? this.dropDownTitle : 'Please Choose a Sector');
   }
 
 }

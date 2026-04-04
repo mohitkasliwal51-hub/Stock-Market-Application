@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Company } from 'src/app/models/company-model';
 import { Exchange } from 'src/app/models/exchange-model';
@@ -34,7 +34,7 @@ export class ComparisonComponent implements OnInit {
   highcharts = Highcharts;
   chartOptions: Highcharts.Options;
 
-  constructor(private authService:AuthService, private companyService:CompanyService, private exchangeService:ExchangeService, private stockPriceService:StockPriceService) {
+  constructor(private authService:AuthService, private companyService:CompanyService, private exchangeService:ExchangeService, private stockPriceService:StockPriceService, private cdr: ChangeDetectorRef) {
     this.state="";
     this.stockPrices = [];
     this.companyTitle="Please choose a company";
@@ -45,16 +45,12 @@ export class ComparisonComponent implements OnInit {
     this.toTime="";
     this.companySelected = {
       "id": 0,
-      "name": "",
+      "companyName": "",
       "turnover": 0,
       "ceo": "",
-      "brief": "",
-      "bod": "",
-      "sector": {
-          "id": 0,
-          "name": "",
-          "brief": ""
-      }
+      "boardOfDirectors": "",
+      "sectorId": 0,
+      "briefWriteup": ""
     }
     this.exchangeSelected = {
       "id": 0,
@@ -110,14 +106,16 @@ export class ComparisonComponent implements OnInit {
     this.state = this.authService.getCurrentUserRole();
     this.companyService.getAllCompanies().subscribe(companies => {
       this.companies = companies;
+      this.cdr.detectChanges();
     });
     this.exchangeService.getAllExchanges().subscribe(exchanges => {
       this.exchanges = exchanges;
+      this.cdr.detectChanges();
     });
   }
 
   onCompanyClick(company:Company){
-    this.companyTitle = company.name;
+    this.companyTitle = company.companyName || company.name || '';
     this.companySelected = company;
   }
 
@@ -127,9 +125,9 @@ export class ComparisonComponent implements OnInit {
   }
 
   onSubmit(){
-    this.fromTime+= ".000+05:30";
-    this.toTime+= ".000+05:30";
-    this.stockPriceService.getStockPrices(this.companySelected.id, this.exchangeSelected.id, this.fromTime, this.toTime).subscribe( stockPrices => {
+    const fromTime = `${this.fromTime}.000+05:30`;
+    const toTime = `${this.toTime}.000+05:30`;
+    this.stockPriceService.getStockPrices(this.companySelected.id, this.exchangeSelected.id, fromTime, toTime).subscribe( stockPrices => {
       if(stockPrices.length){
         this.stockPrices[this.stockPrices.length] = stockPrices;
         console.log(this.stockPrices);
@@ -138,6 +136,7 @@ export class ComparisonComponent implements OnInit {
       } else{
         alert("No data found for the requested period");
       }
+      this.cdr.detectChanges();
     })
     this.onReset();
   }
@@ -145,16 +144,12 @@ export class ComparisonComponent implements OnInit {
   onReset(){
     this.companySelected = {
       "id": 0,
-      "name": "",
+      "companyName": "",
       "turnover": 0,
       "ceo": "",
-      "brief": "",
-      "bod": "",
-      "sector": {
-          "id": 0,
-          "name": "",
-          "brief": ""
-      }
+      "boardOfDirectors": "",
+      "sectorId": 0,
+      "briefWriteup": ""
     }
     this.exchangeSelected = {
       "id": 0,
@@ -171,6 +166,8 @@ export class ComparisonComponent implements OnInit {
     }
     this.companyTitle='Please choose a company';
     this.exchangeTitle='Please choose a stock exchange';
+    this.fromTime = '';
+    this.toTime = '';
   }
 
   getPriceSeries(stockPrices: StockPrice[]):Highcharts.SeriesOptionsType{
@@ -179,7 +176,7 @@ export class ComparisonComponent implements OnInit {
       seriesData[i] = [new Date(stockPrices[i].timestamp).valueOf(), stockPrices[i].price];
     }
     return {
-      name: stockPrices[0].stock.stockCode,
+      name: `Stock #${stockPrices[0].stockId}`,
       data: seriesData,
       type: "line"
     }

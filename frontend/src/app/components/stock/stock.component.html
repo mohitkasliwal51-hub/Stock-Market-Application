@@ -7,7 +7,7 @@
         {{companyTitle}}
       </button>
       <ul class="dropdown-menu w-100" aria-labelledby="dropdownMenuButton1">
-        <li class="dropdown-item" *ngFor="let s of companies" (click)="onCompanyClick(s)">{{s.name}}</li>
+        <li class="dropdown-item" *ngFor="let s of companies" (click)="onCompanyClick(s)">{{s.companyName || s.name}}</li>
       </ul>
     </div>
     <div class="dropdown col-xs-6 col-sm-10 col-xl-6 btn-div">
@@ -23,7 +23,7 @@
       <input type="text" name="stockCode" class="form-control" placeholder="Enter Stock Code" required [(ngModel)]="stock.stockCode">
     </div>
     <div class="btn-grp row">
-      <button type="submit" class="btn btn-dark col-lg-2 col-md-3 col-sm-5 col-xs-6" (click)="addStock()">Submit</button>
+      <button type="button" class="btn btn-dark col-lg-2 col-md-3 col-sm-5 col-xs-6" (click)="addStock()">Submit</button>
       <button type="reset" class="btn btn-secondary col-lg-2 col-md-3 col-sm-5 col-xs-6" id="reset-btn" (click)="onReset()">Reset</button>
     </div>
   </form>

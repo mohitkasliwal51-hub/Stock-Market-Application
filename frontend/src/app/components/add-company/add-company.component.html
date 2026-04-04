@@ -8,7 +8,7 @@
           <h3>General Info</h3>
           <div class="form-group">
             <label>Name of Company</label>
-            <input type="text" name="name" class="form-control" placeholder="Enter Name" required [(ngModel)]="company.name">
+            <input type="text" name="name" class="form-control" placeholder="Enter Name" required [(ngModel)]="company.companyName">
           </div>
           <div class="form-group">
             <label>Turnover</label>
@@ -20,11 +20,11 @@
           </div>
           <div class="form-group">
             <label>Brief</label>
-            <input type="text" name="brief" class="form-control" placeholder="Enter Brief" required [(ngModel)]="company.brief">
+            <input type="text" name="brief" class="form-control" placeholder="Enter Brief" required [(ngModel)]="company.briefWriteup">
           </div>
           <div class="form-group">
             <label>Board Of Directos</label>
-            <input type="text" name="bod" class="form-control" placeholder="Enter comma seperated Board Of Director names" required [(ngModel)]="company.bod">
+            <input type="text" name="bod" class="form-control" placeholder="Enter comma seperated Board Of Director names" required [(ngModel)]="company.boardOfDirectors">
           </div>
           <div class="col-lg-12 col-xs-12 sector-box">
             <h3>Sector Info</h3>
@@ -40,8 +40,8 @@
         </div>
     </div>
     <div class="btn-grp row">
-      <button type="submit" class="btn btn-dark col-lg-2 col-md-3 col-sm-5 col-xs-5" (click)="addCompany()">Submit</button>
-      <button type="reset" class="btn btn-secondary col-lg-2 col-md-3 col-sm-5 col-xs-5" id="reset-btn" (click)="dropDownTitle='Please Choose a Sector'">Reset</button>
+      <button type="button" class="btn btn-dark col-lg-2 col-md-3 col-sm-5 col-xs-5" (click)="addCompany()">Submit</button>
+      <button type="button" class="btn btn-secondary col-lg-2 col-md-3 col-sm-5 col-xs-5" id="reset-btn" (click)="onReset()">Reset</button>
     </div>
   </form>
 </div>

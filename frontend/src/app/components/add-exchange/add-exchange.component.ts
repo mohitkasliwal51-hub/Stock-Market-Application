@@ -47,4 +47,19 @@ export class AddExchangeComponent implements OnInit {
     this.router.navigate(['/exchange']);
   }
 
+  onReset(){
+    this.exchange = {
+      id: 0,
+      name: '',
+      brief: '',
+      address: {
+        street: '',
+        city: '',
+        country: '',
+        zipCode: 0
+      },
+      remarks: 'Remark 3'
+    };
+  }
+
 }

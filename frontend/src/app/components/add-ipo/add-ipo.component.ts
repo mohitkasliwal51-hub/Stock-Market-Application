@@ -41,32 +41,8 @@ export class AddIpoComponent implements OnInit {
       "totalShares": 0,
       "dateTime": "",
       "remarks": "",
-      "company": {
-          "id": 0,
-          "name": "",
-          "turnover": 0,
-          "ceo": "",
-          "brief": "",
-          "bod": "",
-          "sector": {
-              "id": 0,
-              "name": "",
-              "brief": ""
-          }
-      },
-      "stockExchange": {
-          "id": 0,
-          "name": "",
-          "brief": "",
-          "remarks": "",
-          "address": {
-              "id": 0,
-              "street": "",
-              "city": "",
-              "country": "",
-              "zipCode": 0
-          }
-      }
+      "companyId": 0,
+      "stockExchangeId": 0
     }
   }
 
@@ -74,37 +50,44 @@ export class AddIpoComponent implements OnInit {
     this.state = this.authService.getCurrentUserRole();
     this.companyService.getAllCompanies().subscribe(companies => {
       this.companies = companies;
+      this.syncSelectedLabels();
     });
     this.exchangeService.getAllExchanges().subscribe(exchanges => {
       this.exchanges = exchanges;
+      this.syncSelectedLabels();
     });
     if(this.companyId){
       this.ipoService.getIpoByCompany(this.companyId).subscribe( ipo => {
         this.ipo = ipo;
-        this.companyTitle = this.ipo.company.name;
-        this.exchangeTitle = this.ipo.stockExchange.name;
+        this.syncSelectedLabels();
         this.ipo.dateTime = this.ipo.dateTime.substr(0,16);
       })
     }
   }
 
   onCompanyClick(company:Company){
-    this.companyTitle = company.name;
-    this.ipo.company = company;
+    this.companyTitle = company.companyName || company.name || '';
+    this.ipo.companyId = company.id;
   }
 
   onExchangeClick(exchange:Exchange){
     this.exchangeTitle = exchange.name;
-    this.ipo.stockExchange = exchange;
+    this.ipo.stockExchangeId = exchange.id;
   }
 
   addStock(){
     var date: string = this.ipo.dateTime+":00.000+05:30";
     this.ipo.dateTime = date;
     console.log(this.ipo);
-    this.ipoService.addIpo(this.ipo).subscribe( addedIpo => {
-      console.log(addedIpo);
-    })
+    if (this.companyId) {
+      this.ipoService.updateIpo(this.ipo.id, this.ipo).subscribe( updatedIpo => {
+        console.log(updatedIpo);
+      })
+    } else {
+      this.ipoService.addIpo(this.ipo).subscribe( addedIpo => {
+        console.log(addedIpo);
+      })
+    }
     this.router.navigate(['/ipo']);
   }
 
@@ -115,35 +98,22 @@ export class AddIpoComponent implements OnInit {
       "totalShares": 0,
       "dateTime": "",
       "remarks": "",
-      "company": {
-          "id": 0,
-          "name": "",
-          "turnover": 0,
-          "ceo": "",
-          "brief": "",
-          "bod": "",
-          "sector": {
-              "id": 0,
-              "name": "",
-              "brief": ""
-          }
-      },
-      "stockExchange": {
-          "id": 0,
-          "name": "",
-          "brief": "",
-          "remarks": "",
-          "address": {
-              "id": 0,
-              "street": "",
-              "city": "",
-              "country": "",
-              "zipCode": 0
-          }
-      }
+      "companyId": 0,
+      "stockExchangeId": 0
     }
     this.companyTitle='Please choose a company';
     this.exchangeTitle='Please choose a stock exchange';
+  }
+
+  private syncSelectedLabels(){
+    const company = this.companies.find(c => c.id === this.ipo.companyId);
+    if (company) {
+      this.companyTitle = company.companyName || company.name || '';
+    }
+    const exchange = this.exchanges.find(e => e.id === this.ipo.stockExchangeId);
+    if (exchange) {
+      this.exchangeTitle = exchange.name;
+    }
   }
 
 }

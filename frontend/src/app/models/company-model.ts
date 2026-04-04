@@ -2,10 +2,14 @@ import { Sector } from "./sector-model";
 
 export interface Company{
   id:number;
-  name:string;
+  companyName:string;
   turnover:number;
   ceo:string;
-  brief:string;
-  bod:string;
-  sector:Sector;
+  boardOfDirectors:string;
+  sectorId:number;
+  briefWriteup:string;
+  name?:string;
+  brief?:string;
+  bod?:string;
+  sector?:Sector;
 }

@@ -14,20 +14,32 @@
     </div>
   </div>
   <div class="container" *ngIf="this.companies.length">
-    <ul class="list-group">
-      <li class="list-group-item p-3 d-flex flex-row">
-        <h5 class="col-3"><b>Name</b></h5>
-        <h5 class="col-3"><b>CEO</b></h5>
-        <h5 class="col-3"><b>Turnover</b></h5>
-        <h5 class="col-3"><b>Brief</b></h5>
-      </li>
-      <li class="list-group-item p-3 d-flex flex-row" *ngFor="let c of companies">
-        <p class="col">{{c.name}}</p>
-        <p class="col">{{c.ceo}}</p>
-        <p class="col">{{c.turnover | currency}}</p>
-        <p class="col">{{c.brief}}</p>
-      </li>
-    </ul>
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th *ngIf="state === 'admin'">ID</th>
+            <th>Name</th>
+            <th *ngIf="state === 'admin'">Sector ID</th>
+            <th>CEO</th>
+            <th>Turnover</th>
+            <th>Brief</th>
+            <th *ngIf="state === 'admin'">Board of Directors</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of companies">
+            <td *ngIf="state === 'admin'">{{ c.id }}</td>
+            <td>{{ c.companyName || c.name }}</td>
+            <td *ngIf="state === 'admin'">{{ c.sectorId }}</td>
+            <td>{{ c.ceo }}</td>
+            <td>{{ c.turnover | currency }}</td>
+            <td>{{ c.briefWriteup || c.brief }}</td>
+            <td *ngIf="state === 'admin'">{{ c.boardOfDirectors }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
   <div *ngIf="this.companies.length == 0" class="d-flex flex-column align-items-center noshow">
     <img src="../../../assets/empty.svg" alt="Nothing to show">

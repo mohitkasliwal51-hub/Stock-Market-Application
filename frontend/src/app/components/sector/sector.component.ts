@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Company } from 'src/app/models/company-model';
 import { Sector } from 'src/app/models/sector-model';
 import { AuthService } from 'src/app/services/auth.service';
@@ -21,7 +21,7 @@ export class SectorComponent implements OnInit {
   public dropDownTitle:string;
   public currentSector:Sector;
 
-  constructor(private authService:AuthService, private sectorService:SectorService){
+  constructor(private authService:AuthService, private sectorService:SectorService, private cdr: ChangeDetectorRef){
     this.state="";
     this.sectors=[];
     this.companies=[];
@@ -37,8 +37,8 @@ export class SectorComponent implements OnInit {
     this.state = this.authService.getCurrentUserRole();
     this.sectorService.getAllSectors().subscribe(allSectors => {
       this.sectors=allSectors;
+      this.cdr.detectChanges();
     });
-    console.log(this.sectors);
   }
 
   onSectorClick(sector:Sector){
@@ -52,6 +52,7 @@ export class SectorComponent implements OnInit {
     } else{
       this.sectorService.getCompanyBySector(this.currentSector.id).subscribe( allCompanies => {
         this.companies = allCompanies;
+        this.cdr.detectChanges();
       })
     }
   }
