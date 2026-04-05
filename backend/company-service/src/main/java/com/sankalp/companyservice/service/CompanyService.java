@@ -53,14 +53,17 @@ public class CompanyService {
 		Optional<Company> companyOptional = companyRepository.findById(id);
 		if(companyOptional.isPresent()) {
 			Company existingCompany = companyOptional.get();
-			company.setId(id);
-			if (company.getStatus() == null) {
-				company.setStatus(existingCompany.getStatus());
+			existingCompany.setName(company.getName());
+			existingCompany.setCeo(company.getCeo());
+			existingCompany.setBod(company.getBod());
+			existingCompany.setBrief(company.getBrief());
+			existingCompany.setTurnover(company.getTurnover());
+			if (company.getStatus() != null) {
+				existingCompany.setStatus(company.getStatus());
 			}
 			Sector resolvedSector = resolveSector(company.getSector());
-			company.setSector(resolvedSector != null ? resolvedSector : existingCompany.getSector());
-			company.setDeleted(existingCompany.isDeleted());
-			return companyRepository.save(company);
+			existingCompany.setSector(resolvedSector != null ? resolvedSector : existingCompany.getSector());
+			return companyRepository.save(existingCompany);
 		}
 		return null;
 	}

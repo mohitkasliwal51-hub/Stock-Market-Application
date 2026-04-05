@@ -191,7 +191,7 @@ public class CompanyController {
 
 		Company updatedCompany = companyService.updateCompanyStatus(id, status);
 		if (updatedCompany == null) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+			return ResponseEntity.status(HttpStatus.CONFLICT)
 					.body(ApiResult.error("Invalid status transition from "
 							+ existingCompany.getStatus() + " to " + status));
 		}

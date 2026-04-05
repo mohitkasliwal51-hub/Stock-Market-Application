@@ -35,9 +35,10 @@ public class SectorService {
 	public List<Company> getCompaniesBySector(int id) {
 		Optional<Sector> sector = repository.findById(id);
 		if(sector.isPresent()) {
-			return sector.get().getCompanies();
+			List<Company> companies = sector.get().getCompanies();
+			return companies != null ? companies : List.of();
 		}
-		return null;
+		return List.of();
 	}
 	
 	public void deleteSector(int id) {

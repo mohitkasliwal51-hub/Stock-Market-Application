@@ -22,6 +22,9 @@ public class StockPriceService {
 	
 	// Keep existing method for Excel upload
 	public List<ExcelDataDTO> addStockPrices(List<ExcelDataDTO> excelData){
+		if (excelData == null || excelData.isEmpty()) {
+			return new ArrayList<>();
+		}
 		List<ExcelDataDTO> failedInserts = new ArrayList<>();
 		for(ExcelDataDTO data:excelData) {
 			try {
@@ -35,6 +38,9 @@ public class StockPriceService {
 	
 	// New method for API calls with StockPrice entities
 	public List<StockPrice> addStockPriceEntities(List<StockPrice> stockPrices) {
+		if (stockPrices == null || stockPrices.isEmpty()) {
+			return new ArrayList<>();
+		}
 		try {
 			return stockPriceRepository.saveAll(stockPrices);
 		} catch(Exception e) {

@@ -1,58 +1,76 @@
 package com.sankalp.companyservice.mapper;
 
-import com.sankalp.companyservice.dto.IpoDto;
-import com.sankalp.companyservice.entity.Ipo;
-import org.springframework.stereotype.Component;
-
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Component
-public class IpoMapper {
-    
-    public IpoDto toDto(Ipo ipo) {
-        if (ipo == null) return null;
-        
-        IpoDto dto = new IpoDto();
-        dto.setId(ipo.getId());
-        dto.setPricePerShare(ipo.getPricePerShare());
-        dto.setTotalShares(ipo.getTotalShares());
-        dto.setDateTime(ipo.getDateTime().toLocalDateTime());
-        dto.setRemarks(ipo.getRemarks());
-        
-        if (ipo.getCompany() != null) {
-            dto.setCompanyId(ipo.getCompany().getId());
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+import com.sankalp.companyservice.dto.IpoDto;
+import com.sankalp.companyservice.entity.Company;
+import com.sankalp.companyservice.entity.Ipo;
+import com.sankalp.companyservice.entity.StockExchange;
+
+@Mapper(componentModel = "spring")
+public interface IpoMapper {
+
+    @Mapping(target = "companyId", source = "company")
+    @Mapping(target = "stockExchangeId", source = "stockExchange")
+    @Mapping(target = "dateTime", source = "dateTime")
+    IpoDto toDto(Ipo ipo);
+
+    @Mapping(target = "company", source = "companyId")
+    @Mapping(target = "stockExchange", source = "stockExchangeId")
+    @Mapping(target = "dateTime", source = "dateTime")
+    Ipo toEntity(IpoDto dto);
+
+    default List<IpoDto> toDtoList(List<Ipo> ipos) {
+        if (ipos == null) {
+            return Collections.emptyList();
         }
-        if (ipo.getStockExchange() != null) {
-            dto.setStockExchangeId(ipo.getStockExchange().getId());
+        return ipos.stream().map(this::toDto).toList();
+    }
+
+    default List<Ipo> toEntityList(List<IpoDto> ipoDtos) {
+        if (ipoDtos == null) {
+            return Collections.emptyList();
         }
-        
-        return dto;
+        return ipoDtos.stream().map(this::toEntity).toList();
     }
-    
-    public Ipo toEntity(IpoDto dto) {
-        if (dto == null) return null;
-        
-        Ipo ipo = new Ipo();
-        ipo.setId(dto.getId());
-        ipo.setPricePerShare(dto.getPricePerShare());
-        ipo.setTotalShares(dto.getTotalShares());
-        ipo.setRemarks(dto.getRemarks());
-        
-        if (dto.getDateTime() != null) {
-            ipo.setDateTime(java.sql.Timestamp.valueOf(dto.getDateTime()));
+
+    default Integer map(Company company) {
+        return company == null ? null : company.getId();
+    }
+
+    default Company map(Integer companyId) {
+        if (companyId == null || companyId <= 0) {
+            return null;
         }
-        
-        return ipo;
+        Company company = new Company();
+        company.setId(companyId);
+        return company;
     }
-    
-    public List<IpoDto> toDtoList(List<Ipo> ipos) {
-        if (ipos == null) return null;
-        return ipos.stream().map(this::toDto).collect(Collectors.toList());
+
+    default Integer map(StockExchange stockExchange) {
+        return stockExchange == null ? null : stockExchange.getId();
     }
-    
-    public List<Ipo> toEntityList(List<IpoDto> ipoDtos) {
-        if (ipoDtos == null) return null;
-        return ipoDtos.stream().map(this::toEntity).collect(Collectors.toList());
+
+    default StockExchange mapStockExchange(Integer stockExchangeId) {
+        if (stockExchangeId == null || stockExchangeId <= 0) {
+            return null;
+        }
+        StockExchange stockExchange = new StockExchange();
+        stockExchange.setId(stockExchangeId);
+        return stockExchange;
+    }
+
+    default LocalDateTime map(Timestamp timestamp) {
+        return timestamp == null ? null : timestamp.toLocalDateTime();
+    }
+
+    default Timestamp map(LocalDateTime dateTime) {
+        return dateTime == null ? null : Timestamp.valueOf(dateTime);
     }
 }

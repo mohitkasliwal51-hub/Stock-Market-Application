@@ -1,13 +1,13 @@
 package com.sankalp.companyservice.dto;
 
+import java.time.LocalDateTime;
+
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class StockPriceDto {
@@ -20,5 +20,6 @@ public class StockPriceDto {
     @NotNull(message = "Timestamp is required")
     private LocalDateTime timestamp;
     
+    @NotNull(message = "Stock ID is required")
     private Integer stockId;
 }

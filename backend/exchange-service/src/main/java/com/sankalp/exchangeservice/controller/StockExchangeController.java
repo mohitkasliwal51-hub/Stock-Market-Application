@@ -2,16 +2,17 @@ package com.sankalp.exchangeservice.controller;
 
 import java.util.List;
 
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.sankalp.exchangeservice.dto.ApiResult;
 import com.sankalp.exchangeservice.dto.CompanyDto;
@@ -25,6 +26,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("api/stockExchanges")
@@ -36,9 +38,6 @@ public class StockExchangeController {
 	
 	@Autowired
 	private StockExchangeMapper stockExchangeMapper;
-	
-	@Autowired
-	private RestTemplate restTemplate;
 	
 	@GetMapping
 	@Operation(summary = "Get all stock exchanges", description = "Retrieve a list of all stock exchanges in the system")
@@ -138,24 +137,7 @@ public class StockExchangeController {
 	public ResponseEntity<ApiResult<List<CompanyDto>>> getCompaniesByExchangeId(
 			@Parameter(description = "ID of the stock exchange", required = true)
 			@PathVariable(value = "exchangeId") int id) {
-		StockExchange exchange = stockExchangeService.getStockExchangeById(id);
-		if (exchange == null) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(ApiResult.error("Stock exchange not found with id: " + id));
-		}
-		String apiUrl = "http://COMPANY-SERVICE/api/companies/by-exchange/" + id;
-		try {
-			ResponseEntity<ApiResult<List<CompanyDto>>> response = restTemplate.exchange(
-					apiUrl,
-					HttpMethod.GET,
-					HttpEntity.EMPTY,
-					new ParameterizedTypeReference<ApiResult<List<CompanyDto>>>() {}
-			);
-			return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
-		} catch (RestClientException ex) {
-			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-					.body(ApiResult.error("Failed to retrieve companies from Company Service"));
-		}
+		return stockExchangeService.getCompaniesByExchangeId(id);
 	}
 	
 }

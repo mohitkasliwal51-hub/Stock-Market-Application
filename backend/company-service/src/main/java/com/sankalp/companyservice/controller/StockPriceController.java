@@ -2,13 +2,18 @@ package com.sankalp.companyservice.controller;
 
 import java.util.List;
 
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.sankalp.companyservice.dto.ApiResult;
+import com.sankalp.companyservice.dto.ExcelDataDTO;
 import com.sankalp.companyservice.dto.StockPriceDto;
 import com.sankalp.companyservice.entity.StockPrice;
 import com.sankalp.companyservice.mapper.StockPriceMapper;
@@ -19,6 +24,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("api/stock-prices")
@@ -54,6 +60,27 @@ public class StockPriceController {
 		List<StockPriceDto> responseDtos = stockPriceMapper.toDtoList(createdStockPrices);
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(ApiResult.success("Stock prices added successfully", responseDtos));
+	}
+
+	@PostMapping("/uploadData")
+	@Operation(summary = "Upload Excel stock prices", description = "Add stock prices using company and exchange identifiers")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "201", description = "Stock prices processed successfully"),
+		@ApiResponse(responseCode = "400", description = "Invalid input data")
+	})
+	public ResponseEntity<ApiResult<List<ExcelDataDTO>>> uploadStockPrices(
+			@Valid @RequestBody List<ExcelDataDTO> data) {
+		if (data == null || data.isEmpty()) {
+			return ResponseEntity.badRequest()
+					.body(ApiResult.error("Data cannot be empty"));
+		}
+
+		List<ExcelDataDTO> failedInserts = stockPriceService.addStockPrices(data);
+		String message = failedInserts.isEmpty()
+				? "All records processed successfully"
+				: "Some records failed processing";
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(ApiResult.success(message, failedInserts));
 	}
 	
 	@GetMapping("/by-company/{companyId}/{exchangeId}/{before}/{after}")

@@ -1,49 +1,64 @@
 package com.sankalp.companyservice.mapper;
 
-import com.sankalp.companyservice.dto.StockDto;
-import com.sankalp.companyservice.entity.Stock;
-import org.springframework.stereotype.Component;
-
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Component
-public class StockMapper {
-    
-    public StockDto toDto(Stock stock) {
-        if (stock == null) return null;
-        
-        StockDto dto = new StockDto();
-        dto.setId(stock.getId());
-        dto.setStockCode(stock.getStockCode());
-        
-        if (stock.getCompany() != null) {
-            dto.setCompanyId(stock.getCompany().getId());
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+import com.sankalp.companyservice.dto.StockDto;
+import com.sankalp.companyservice.entity.Company;
+import com.sankalp.companyservice.entity.Stock;
+import com.sankalp.companyservice.entity.StockExchange;
+
+@Mapper(componentModel = "spring")
+public interface StockMapper {
+
+    @Mapping(target = "companyId", source = "company")
+    @Mapping(target = "stockExchangeId", source = "stockExchange")
+    StockDto toDto(Stock stock);
+
+    @Mapping(target = "company", source = "companyId")
+    @Mapping(target = "stockExchange", source = "stockExchangeId")
+    Stock toEntity(StockDto dto);
+
+    default List<StockDto> toDtoList(List<Stock> stocks) {
+        if (stocks == null) {
+            return Collections.emptyList();
         }
-        if (stock.getStockExchange() != null) {
-            dto.setStockExchangeId(stock.getStockExchange().getId());
+        return stocks.stream().map(this::toDto).toList();
+    }
+
+    default List<Stock> toEntityList(List<StockDto> stockDtos) {
+        if (stockDtos == null) {
+            return Collections.emptyList();
         }
-        
-        return dto;
+        return stockDtos.stream().map(this::toEntity).toList();
     }
-    
-    public Stock toEntity(StockDto dto) {
-        if (dto == null) return null;
-        
-        Stock stock = new Stock();
-        stock.setId(dto.getId());
-        stock.setStockCode(dto.getStockCode());
-        
-        return stock;
+
+    default Integer map(Company company) {
+        return company == null ? null : company.getId();
     }
-    
-    public List<StockDto> toDtoList(List<Stock> stocks) {
-        if (stocks == null) return null;
-        return stocks.stream().map(this::toDto).collect(Collectors.toList());
+
+    default Company map(Integer companyId) {
+        if (companyId == null || companyId <= 0) {
+            return null;
+        }
+        Company company = new Company();
+        company.setId(companyId);
+        return company;
     }
-    
-    public List<Stock> toEntityList(List<StockDto> stockDtos) {
-        if (stockDtos == null) return null;
-        return stockDtos.stream().map(this::toEntity).collect(Collectors.toList());
+
+    default Integer map(StockExchange stockExchange) {
+        return stockExchange == null ? null : stockExchange.getId();
+    }
+
+    default StockExchange mapStockExchange(Integer stockExchangeId) {
+        if (stockExchangeId == null || stockExchangeId <= 0) {
+            return null;
+        }
+        StockExchange stockExchange = new StockExchange();
+        stockExchange.setId(stockExchangeId);
+        return stockExchange;
     }
 }

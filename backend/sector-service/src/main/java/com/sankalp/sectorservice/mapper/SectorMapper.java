@@ -1,43 +1,24 @@
 package com.sankalp.sectorservice.mapper;
 
+import java.util.Collections;
+import java.util.List;
+
+import org.mapstruct.Mapper;
+
 import com.sankalp.sectorservice.dto.SectorDto;
 import com.sankalp.sectorservice.entity.Sector;
-import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.stream.Collectors;
+@Mapper(componentModel = "spring")
+public interface SectorMapper {
 
-@Component
-public class SectorMapper {
-    
-    public SectorDto toDto(Sector sector) {
-        if (sector == null) {
-            return null;
-        }
-        SectorDto dto = new SectorDto();
-        dto.setId(sector.getId());
-        dto.setName(sector.getName());
-        dto.setBrief(sector.getBrief());
-        return dto;
-    }
+	SectorDto toDto(Sector sector);
 
-    public Sector toEntity(SectorDto dto) {
-        if (dto == null) {
-            return null;
-        }
-        Sector sector = new Sector();
-        sector.setId(dto.getId());
-        sector.setName(dto.getName());
-        sector.setBrief(dto.getBrief());
-        return sector;
-    }
+	Sector toEntity(SectorDto dto);
 
-    public List<SectorDto> toDtoList(List<Sector> sectors) {
-        if (sectors == null) {
-            return null;
-        }
-        return sectors.stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
-    }
+	default List<SectorDto> toDtoList(List<Sector> sectors) {
+		if (sectors == null) {
+			return Collections.emptyList();
+		}
+		return sectors.stream().map(this::toDto).toList();
+	}
 }

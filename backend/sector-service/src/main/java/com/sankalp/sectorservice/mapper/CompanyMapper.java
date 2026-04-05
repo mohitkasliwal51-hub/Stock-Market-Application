@@ -1,56 +1,58 @@
 package com.sankalp.sectorservice.mapper;
 
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
 import com.sankalp.sectorservice.dto.CompanyDto;
 import com.sankalp.sectorservice.entity.Company;
-import org.springframework.stereotype.Component;
+import com.sankalp.sectorservice.entity.Sector;
 
-import java.util.List;
-import java.util.stream.Collectors;
+@Mapper(componentModel = "spring")
+public interface CompanyMapper {
 
-@Component
-public class CompanyMapper {
-    
-    public CompanyDto toDto(Company company) {
-        if (company == null) {
-            return null;
-        }
-        CompanyDto dto = new CompanyDto();
-        dto.setId(company.getId());
-        dto.setCompanyName(company.getName());
-        dto.setCeo(company.getCeo());
-        dto.setBoardOfDirectors(company.getBod());
-        dto.setBriefWriteup(company.getBrief());
-        dto.setTurnover(java.math.BigDecimal.valueOf(company.getTurnover()));
-        // Handle sector relationship
-        if (company.getSector() != null) {
-            dto.setSectorId(company.getSector().getId());
-        }
-        return dto;
-    }
+	@Mapping(target = "companyName", source = "name")
+	@Mapping(target = "boardOfDirectors", source = "bod")
+	@Mapping(target = "briefWriteup", source = "brief")
+	@Mapping(target = "turnover", source = "turnover")
+	@Mapping(target = "sectorId", source = "sector")
+	CompanyDto toDto(Company company);
 
-    public Company toEntity(CompanyDto dto) {
-        if (dto == null) {
-            return null;
-        }
-        Company company = new Company();
-        company.setId(dto.getId());
-        company.setName(dto.getCompanyName());
-        company.setCeo(dto.getCeo());
-        company.setBod(dto.getBoardOfDirectors());
-        company.setBrief(dto.getBriefWriteup());
-        // Convert BigDecimal to long
-        if (dto.getTurnover() != null) {
-            company.setTurnover(dto.getTurnover().longValue());
-        }
-        return company;
-    }
+	@Mapping(target = "name", source = "companyName")
+	@Mapping(target = "bod", source = "boardOfDirectors")
+	@Mapping(target = "brief", source = "briefWriteup")
+	@Mapping(target = "turnover", source = "turnover")
+	@Mapping(target = "sector", source = "sectorId")
+	Company toEntity(CompanyDto dto);
 
-    public List<CompanyDto> toDtoList(List<Company> companies) {
-        if (companies == null) {
-            return null;
-        }
-        return companies.stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
-    }
+	default List<CompanyDto> toDtoList(List<Company> companies) {
+		if (companies == null) {
+			return Collections.emptyList();
+		}
+		return companies.stream().map(this::toDto).toList();
+	}
+
+	default BigDecimal map(long turnover) {
+		return BigDecimal.valueOf(turnover);
+	}
+
+	default long map(BigDecimal turnover) {
+		return turnover == null ? 0L : turnover.longValue();
+	}
+
+	default Integer map(Sector sector) {
+		return sector == null ? null : sector.getId();
+	}
+
+	default Sector map(Integer sectorId) {
+		if (sectorId == null || sectorId <= 0) {
+			return null;
+		}
+		Sector sector = new Sector();
+		sector.setId(sectorId);
+		return sector;
+	}
 }

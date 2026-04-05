@@ -1,24 +1,17 @@
 package com.sankalp.excelservice.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import com.sankalp.excelservice.dto.ApiResult;
 import com.sankalp.excelservice.dto.ExcelDataDTO;
+import com.sankalp.excelservice.service.ExcelDataService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,8 +27,11 @@ import jakarta.validation.Valid;
 @Tag(name = "Excel Data Management", description = "APIs for importing and processing Excel data")
 public class ExcelDataController {
 	
-	@Autowired
-	private RestTemplate restTemplate;
+	private final ExcelDataService excelDataService;
+
+	public ExcelDataController(ExcelDataService excelDataService) {
+		this.excelDataService = excelDataService;
+	}
 	
 	@GetMapping("/health")
 	@Operation(summary = "Health check", description = "Verify Excel service is running")
@@ -58,32 +54,7 @@ public class ExcelDataController {
 	})
 	public ResponseEntity<ApiResult<List<ExcelDataDTO>>> uploadData(
 			@Valid @RequestBody List<ExcelDataDTO> data) {
-		if (data == null || data.isEmpty()) {
-			return ResponseEntity.badRequest()
-					.body(ApiResult.error("Data cannot be empty", "INVALID_INPUT"));
-		}
-		
-		try {
-			String apiUrl = "http://COMPANY-SERVICE/company/addStockPrices";
-			ResponseEntity<List<ExcelDataDTO>> response = restTemplate.exchange(
-					apiUrl,
-					HttpMethod.POST,
-					new HttpEntity<>(data),
-					new ParameterizedTypeReference<List<ExcelDataDTO>>() {}
-			);
-			List<ExcelDataDTO> failedInserts = response.getBody();
-			
-			if (failedInserts == null || failedInserts.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.ACCEPTED)
-						.body(ApiResult.success("All records processed successfully", new ArrayList<>()));
-			} else {
-				return ResponseEntity.status(HttpStatus.ACCEPTED)
-						.body(ApiResult.success("Some records failed processing", failedInserts));
-			}
-		} catch (RestClientException e) {
-			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-					.body(ApiResult.error("Company service is unavailable: " + e.getMessage(), "SERVICE_UNAVAILABLE"));
-		}
+		return excelDataService.uploadData(data);
 	}
 	
 }
