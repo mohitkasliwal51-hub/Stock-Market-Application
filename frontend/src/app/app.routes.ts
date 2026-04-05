@@ -25,6 +25,7 @@ export const routes: Routes = [
   { path: 'comparison', component: ComparisonComponent, canActivate: [authGuard] },
   { path: 'exchange', component: ExchangeComponent, canActivate: [adminGuard] },
   { path: 'addExchange', component: AddExchangeComponent, canActivate: [adminGuard] },
+  { path: 'updateExchange/:id', component: AddExchangeComponent, canActivate: [adminGuard] },
   { path: 'ipo', component: IpoComponent, canActivate: [authGuard] },
   { path: 'addIpo', component: AddIpoComponent, canActivate: [adminGuard] },
   { path: 'updateIpo/:id', component: AddIpoComponent, canActivate: [adminGuard] },

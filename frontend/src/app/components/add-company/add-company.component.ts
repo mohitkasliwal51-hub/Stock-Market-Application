@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from "@angular/router"
 import { Company } from 'src/app/models/company-model';
@@ -24,11 +24,11 @@ export class AddCompanyComponent implements OnInit {
   public dropDownTitle:string;
   public companyId:number;
 
-  constructor(private authService:AuthService, private sectorService:SectorService, private companyService:CompanyService, private router: Router, private activatedRoute:ActivatedRoute) {
+  constructor(private authService:AuthService, private sectorService:SectorService, private companyService:CompanyService, private router: Router, private activatedRoute:ActivatedRoute, private cdr: ChangeDetectorRef) {
     this.state="";
     this.sectors=[];
     this.dropDownTitle="Please Choose a Sector"
-    this.companyId = this.activatedRoute.snapshot.params["id"];
+    this.companyId = Number(this.activatedRoute.snapshot.params["id"] || 0);
     this.company = {
       "id":0,
       "companyName": "",
@@ -42,20 +42,34 @@ export class AddCompanyComponent implements OnInit {
 
   ngOnInit(): void {
     this.state = this.authService.getCurrentUserRole();
+    if (this.companyId) {
+      this.loadCompanyData();
+    }
     this.sectorService.getAllSectors().subscribe( sectors => {
       this.sectors = sectors;
-      if (this.companyId) {
-        this.loadCompanyData();
-      } else {
-        this.syncSelectedSectorTitle();
-      }
+      this.syncSelectedSectorTitle();
+      this.cdr.detectChanges();
     })
   }
 
   private loadCompanyData(): void {
     this.companyService.getCompanyById(this.companyId).subscribe(companyFound => {
-      this.company = companyFound;
+      this.company = {
+        id: companyFound.id || 0,
+        companyName: companyFound.companyName || companyFound.name || '',
+        turnover: Number(companyFound.turnover || 0),
+        ceo: companyFound.ceo || '',
+        briefWriteup: companyFound.briefWriteup || companyFound.brief || '',
+        boardOfDirectors: companyFound.boardOfDirectors || companyFound.bod || '',
+        sectorId: Number(companyFound.sectorId || companyFound.sector?.id || 0),
+        status: companyFound.status,
+        name: companyFound.name,
+        brief: companyFound.brief,
+        bod: companyFound.bod,
+        sector: companyFound.sector
+      };
       this.syncSelectedSectorTitle();
+      this.cdr.detectChanges();
     });
   }
 
@@ -67,13 +81,16 @@ export class AddCompanyComponent implements OnInit {
       if (this.companyId) {
         this.companyService.updateCompany(this.companyId, this.company).subscribe(updatedCompany => {
           console.log(updatedCompany);
+          this.cdr.detectChanges();
+          this.router.navigate(['/company']);
         })
       } else {
         this.companyService.addCompany(this.company).subscribe(addedCompany => {
           console.log(addedCompany);
+          this.cdr.detectChanges();
+          this.router.navigate(['/company']);
         })
       }
-      this.router.navigate(['/company']);
     }
   }
 

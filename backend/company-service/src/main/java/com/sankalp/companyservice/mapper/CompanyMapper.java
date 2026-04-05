@@ -1,10 +1,13 @@
 package com.sankalp.companyservice.mapper;
 
-import com.sankalp.companyservice.dto.CompanyDto;
-import com.sankalp.companyservice.entity.Company;
-import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Component;
+
+import com.sankalp.companyservice.dto.CompanyDto;
+import com.sankalp.companyservice.entity.Company;
+import com.sankalp.companyservice.entity.Sector;
 
 @Component
 public class CompanyMapper {
@@ -41,6 +44,11 @@ public class CompanyMapper {
         // Convert BigDecimal to long
         if (dto.getTurnover() != null) {
             company.setTurnover(dto.getTurnover().longValue());
+        }
+        if (dto.getSectorId() != null && dto.getSectorId() > 0) {
+            Sector sector = new Sector();
+            sector.setId(dto.getSectorId());
+            company.setSector(sector);
         }
         return company;
     }

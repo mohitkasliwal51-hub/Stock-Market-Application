@@ -8,8 +8,10 @@ import org.springframework.stereotype.Service;
 
 import com.sankalp.companyservice.entity.Company;
 import com.sankalp.companyservice.entity.CompanyStatus;
+import com.sankalp.companyservice.entity.Sector;
 import com.sankalp.companyservice.repository.CompanyRepository;
 import com.sankalp.companyservice.repository.IpoRepository;
+import com.sankalp.companyservice.repository.SectorRepository;
 import com.sankalp.companyservice.repository.StockRepository;
 
 @Service
@@ -23,6 +25,9 @@ public class CompanyService {
 
 	@Autowired
 	private IpoRepository ipoRepository;
+
+	@Autowired
+	private SectorRepository sectorRepository;
 	
 	public List<Company> getAllCompanies(){
 		return companyRepository.findAll();
@@ -40,6 +45,7 @@ public class CompanyService {
 		if (company.getStatus() == null) {
 			company.setStatus(CompanyStatus.PENDING);
 		}
+		company.setSector(resolveSector(company.getSector()));
 		return companyRepository.save(company);
 	}
 
@@ -51,10 +57,19 @@ public class CompanyService {
 			if (company.getStatus() == null) {
 				company.setStatus(existingCompany.getStatus());
 			}
+			Sector resolvedSector = resolveSector(company.getSector());
+			company.setSector(resolvedSector != null ? resolvedSector : existingCompany.getSector());
 			company.setDeleted(existingCompany.isDeleted());
 			return companyRepository.save(company);
 		}
 		return null;
+	}
+
+	private Sector resolveSector(Sector requestedSector) {
+		if (requestedSector == null || requestedSector.getId() <= 0) {
+			return null;
+		}
+		return sectorRepository.findById(requestedSector.getId()).orElse(null);
 	}
 	
 	public DeleteCompanyResult deactivateCompany(int id) {
