@@ -6,6 +6,7 @@ import { Company } from 'src/app/models/company-model';
 import { Sector } from 'src/app/models/sector-model';
 import { AuthService } from 'src/app/services/auth.service';
 import { CompanyService } from 'src/app/services/company.service';
+import { LiveAnnouncerService } from 'src/app/services/live-announcer.service';
 import { SectorService } from 'src/app/services/sector.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 
@@ -23,8 +24,11 @@ export class AddCompanyComponent implements OnInit {
   public sectors:Sector[];
   public dropDownTitle:string;
   public companyId:number;
+  public errorMessage:string = '';
+  public successMessage:string = '';
+  public isLoading:boolean = false;
 
-  constructor(private authService:AuthService, private sectorService:SectorService, private companyService:CompanyService, private router: Router, private activatedRoute:ActivatedRoute, private cdr: ChangeDetectorRef) {
+  constructor(private authService:AuthService, private sectorService:SectorService, private companyService:CompanyService, private router: Router, private activatedRoute:ActivatedRoute, private cdr: ChangeDetectorRef, private liveAnnouncer: LiveAnnouncerService) {
     this.state="";
     this.sectors=[];
     this.dropDownTitle="Please Choose a Sector"
@@ -74,24 +78,54 @@ export class AddCompanyComponent implements OnInit {
   }
 
   addCompany(){
+    this.errorMessage = '';
+    this.successMessage = '';
+
     if(this.company.sectorId === 0){
-      alert("Please choose a sector");
-    } else{
-      console.log(this.company);
-      if (this.companyId) {
-        this.companyService.updateCompany(this.companyId, this.company).subscribe(updatedCompany => {
-          console.log(updatedCompany);
-          this.cdr.detectChanges();
-          this.router.navigate(['/company']);
-        })
-      } else {
-        this.companyService.addCompany(this.company).subscribe(addedCompany => {
-          console.log(addedCompany);
-          this.cdr.detectChanges();
-          this.router.navigate(['/company']);
-        })
-      }
+      this.errorMessage = 'Please choose a sector';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
     }
+
+    if (!this.company.companyName?.trim()) {
+      this.errorMessage = 'Company name is required';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
+    }
+
+    if (this.company.turnover <= 0) {
+      this.errorMessage = 'Turnover must be greater than zero';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
+    }
+
+    if (!this.company.ceo?.trim() || !this.company.briefWriteup?.trim() || !this.company.boardOfDirectors?.trim()) {
+      this.errorMessage = 'Please fill all required fields';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
+    }
+
+    this.isLoading = true;
+    this.liveAnnouncer.announceStatus(this.companyId ? 'Updating company details.' : 'Submitting company details.');
+    const request$ = this.companyId
+      ? this.companyService.updateCompany(this.companyId, this.company)
+      : this.companyService.addCompany(this.company);
+
+    request$.subscribe({
+      next: (company) => {
+        console.log(company);
+        this.successMessage = this.companyId ? 'Company updated successfully!' : 'Company added successfully!';
+        this.liveAnnouncer.announceSuccess(this.successMessage);
+        this.cdr.detectChanges();
+        setTimeout(() => this.router.navigate(['/company']), 1500);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err?.error?.message || err?.error?.error?.message || 'Failed to save company';
+        this.liveAnnouncer.announceError(this.errorMessage);
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   onReset(){

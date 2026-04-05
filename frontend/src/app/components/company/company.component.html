@@ -1,5 +1,7 @@
 <app-navbar [state]="state"></app-navbar>
 <div class="container">
+  <div *ngIf="errorMessage" class="alert alert-danger" role="alert">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="alert alert-success" role="alert">{{ successMessage }}</div>
   <div class="container box-wrap">
     <h1>Companies</h1>
     <button class="btn btn-dark add-btn col-2" routerLink="/addCompany">Add your Company</button>
@@ -38,11 +40,11 @@
             <td *ngIf="state === 'admin'">{{ getCompanyStatus(c) }}</td>
             <td *ngIf="state === 'admin'" class="text-nowrap">
               <button class="btn btn-dark me-2" routerLink="/updateCompany/{{c.id}}">Update</button>
-              <button class="btn btn-danger" (click)="deleteCompany(c.id)">Deactivate</button>
-              <button class="btn btn-success ms-2" [disabled]="!isActionAllowed(c, 'approve')" (click)="updateCompanyStatus(c.id, 'approve')">Approve</button>
-              <button class="btn btn-warning ms-2" [disabled]="!isActionAllowed(c, 'reject')" (click)="updateCompanyStatus(c.id, 'reject')">Reject</button>
-              <button class="btn btn-secondary ms-2" [disabled]="!isActionAllowed(c, 'suspend')" (click)="updateCompanyStatus(c.id, 'suspend')">Suspend</button>
-              <button class="btn btn-outline-danger ms-2" [disabled]="!isActionAllowed(c, 'ban')" (click)="updateCompanyStatus(c.id, 'ban')">Ban</button>
+              <button class="btn btn-danger" (click)="deleteCompany(c)">Deactivate</button>
+              <button class="btn btn-success ms-2" [disabled]="!isActionAllowed(c, 'approve')" (click)="updateCompanyStatus(c, 'approve')">Approve</button>
+              <button class="btn btn-warning ms-2" [disabled]="!isActionAllowed(c, 'reject')" (click)="updateCompanyStatus(c, 'reject')">Reject</button>
+              <button class="btn btn-secondary ms-2" [disabled]="!isActionAllowed(c, 'suspend')" (click)="updateCompanyStatus(c, 'suspend')">Suspend</button>
+              <button class="btn btn-outline-danger ms-2" [disabled]="!isActionAllowed(c, 'ban')" (click)="updateCompanyStatus(c, 'ban')">Ban</button>
             </td>
           </tr>
         </tbody>

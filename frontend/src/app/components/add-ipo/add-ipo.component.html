@@ -40,8 +40,20 @@
       </div>
     </div>
     <div class="btn-grp row">
-      <button type="button" class="btn btn-dark col-lg-2 col-md-4 col-sm-5 col-xs-6" (click)="addStock()">Submit</button>
-      <button type="button" class="btn btn-secondary col-lg-2 col-md-4 col-sm-5 col-xs-6" id="reset-btn" (click)="onReset()">Reset</button>
+      <div class="col-12 mb-3">
+        <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+          {{ errorMessage }}
+          <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+        </div>
+        <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+          {{ successMessage }}
+          <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+        </div>
+      </div>
+      <button type="button" class="btn btn-dark col-lg-2 col-md-4 col-sm-5 col-xs-6" (click)="addStock()" [disabled]="isLoading">
+        {{ isLoading ? 'Submitting...' : 'Submit' }}
+      </button>
+      <button type="button" class="btn btn-secondary col-lg-2 col-md-4 col-sm-5 col-xs-6" id="reset-btn" (click)="onReset()" [disabled]="isLoading">Reset</button>
     </div>
   </form>
 </div>

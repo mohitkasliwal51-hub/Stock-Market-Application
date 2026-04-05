@@ -4,10 +4,12 @@ import { RouterLink } from '@angular/router';
 import { Company } from 'src/app/models/company-model';
 import { Exchange } from 'src/app/models/exchange-model';
 import { Ipo } from 'src/app/models/ipo-model';
+import { AppDialogService } from 'src/app/services/app-dialog.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { CompanyService } from 'src/app/services/company.service';
 import { ExchangeService } from 'src/app/services/exchange.service';
 import { IpoService } from 'src/app/services/ipo.service';
+import { LiveAnnouncerService } from 'src/app/services/live-announcer.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
@@ -26,8 +28,10 @@ export class IpoComponent implements OnInit {
   public exchanges:Exchange[];
   public dropDownTitle:string;
   public currentCompanyId:number;
+  public errorMessage:string;
+  public successMessage:string;
 
-  constructor(private authService:AuthService, private ipoService:IpoService, private companyService:CompanyService, private exchangeService:ExchangeService, private cdr: ChangeDetectorRef) {
+  constructor(private authService:AuthService, private ipoService:IpoService, private companyService:CompanyService, private exchangeService:ExchangeService, private cdr: ChangeDetectorRef, private liveAnnouncer: LiveAnnouncerService, private appDialog: AppDialogService) {
     this.state="";
     this.ipos=[];
     this.allIpos=[];
@@ -35,6 +39,8 @@ export class IpoComponent implements OnInit {
     this.exchanges=[];
     this.dropDownTitle = "Please select company";
     this.currentCompanyId = 0;
+    this.errorMessage = '';
+    this.successMessage = '';
   }
 
   ngOnInit(): void {
@@ -65,12 +71,18 @@ export class IpoComponent implements OnInit {
   }
 
   onLoadComapnies(){
+    this.errorMessage = '';
+    this.successMessage = '';
     if(this.dropDownTitle==="Please select company"){
-      alert("Please select a Company");
+      this.errorMessage = 'Please select a Company';
+      this.liveAnnouncer.announceError(this.errorMessage);
     } else{
+      this.liveAnnouncer.announceStatus('Loading IPO data for selected company.');
       this.ipoService.getIpoByCompany(this.currentCompanyId).subscribe( ipo => {
         this.ipos=[];
         this.ipos.push(ipo);
+        this.successMessage = 'IPO data loaded successfully';
+        this.liveAnnouncer.announceSuccess(this.successMessage);
         this.cdr.detectChanges();
       })
     }
@@ -100,11 +112,30 @@ export class IpoComponent implements OnInit {
     return ipo.stockExchangeId;
   }
 
-  public deleteIpo(id:number):void{
-    this.ipoService.deleteIpo(id).subscribe(() => {
-      console.log('IPO deleted');
-      this.getAllIpos();
-      this.cdr.detectChanges();
+  public async deleteIpo(ipo:Ipo):Promise<void>{
+    const companyName = this.getCompanyName(ipo.companyId);
+    const confirmed = await this.appDialog.confirm(`Do you want to delete IPO ${ipo.id} for company ${companyName} (ID ${ipo.companyId})?`, {
+      title: 'Delete IPO',
+      confirmLabel: 'Delete'
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.liveAnnouncer.announceStatus(`Deleting IPO ${ipo.id} for company ${companyName} (ID ${ipo.companyId}).`);
+    this.ipoService.deleteIpo(ipo.id).subscribe({
+      next: () => {
+        this.successMessage = `IPO ${ipo.id} for company ${companyName} (ID ${ipo.companyId}) deleted successfully.`;
+        this.errorMessage = '';
+        this.liveAnnouncer.announceSuccess(this.successMessage);
+        this.getAllIpos();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message || err?.error?.error?.message || `Failed to delete IPO ${ipo.id} for company ${companyName} (ID ${ipo.companyId}).`;
+        this.successMessage = '';
+        this.liveAnnouncer.announceError(this.errorMessage);
+      }
     });
   }
 

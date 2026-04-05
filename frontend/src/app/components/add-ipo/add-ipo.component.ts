@@ -9,6 +9,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { CompanyService } from 'src/app/services/company.service';
 import { ExchangeService } from 'src/app/services/exchange.service';
 import { IpoService } from 'src/app/services/ipo.service';
+import { LiveAnnouncerService } from 'src/app/services/live-announcer.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
@@ -27,8 +28,11 @@ export class AddIpoComponent implements OnInit {
   public companyTitle:string;
   public exchangeTitle:string;
   public companyId:number;
+  public errorMessage:string = '';
+  public successMessage:string = '';
+  public isLoading:boolean = false;
 
-  constructor(private authService:AuthService, private companyService:CompanyService, private exchangeService:ExchangeService, private ipoService:IpoService, private router: Router, private activatedRoute:ActivatedRoute, private cdr: ChangeDetectorRef) {
+  constructor(private authService:AuthService, private companyService:CompanyService, private exchangeService:ExchangeService, private ipoService:IpoService, private router: Router, private activatedRoute:ActivatedRoute, private cdr: ChangeDetectorRef, private liveAnnouncer: LiveAnnouncerService) {
     this.state="";
     this.companyTitle="Please choose a company";
     this.exchangeTitle="Please choose a stock exchange";
@@ -91,24 +95,60 @@ export class AddIpoComponent implements OnInit {
   }
 
   addStock(){
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    if (this.ipo.companyId === 0) {
+      this.errorMessage = 'Please choose a company';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
+    }
+
+    if (this.ipo.stockExchangeId === 0) {
+      this.errorMessage = 'Please choose a stock exchange';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
+    }
+
+    if (this.ipo.pricePerShare <= 0 || this.ipo.totalShares <= 0) {
+      this.errorMessage = 'Price per share and total shares must be greater than zero';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
+    }
+
+    if (!this.ipo.dateTime?.trim()) {
+      this.errorMessage = 'Opening date and time is required';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
+    }
+
     console.log(this.ipo);
     const payload:Ipo = {
       ...this.ipo,
       dateTime: this.toApiDateTime(this.ipo.dateTime)
     };
-    if (this.companyId) {
-      this.ipoService.updateIpo(this.companyId, payload).subscribe( updatedIpo => {
-        console.log(updatedIpo);
+
+    this.isLoading = true;
+    this.liveAnnouncer.announceStatus(this.companyId ? 'Updating IPO details.' : 'Submitting IPO details.');
+    const request$ = this.companyId
+      ? this.ipoService.updateIpo(this.companyId, payload)
+      : this.ipoService.addIpo(payload);
+
+    request$.subscribe({
+      next: (ipo) => {
+        console.log(ipo);
+        this.successMessage = this.companyId ? 'IPO updated successfully!' : 'IPO added successfully!';
+        this.liveAnnouncer.announceSuccess(this.successMessage);
         this.cdr.detectChanges();
-        this.router.navigate(['/ipo']);
-      })
-    } else {
-      this.ipoService.addIpo(payload).subscribe( addedIpo => {
-        console.log(addedIpo);
+        setTimeout(() => this.router.navigate(['/ipo']), 1500);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err?.error?.message || err?.error?.error?.message || 'Failed to save IPO';
+        this.liveAnnouncer.announceError(this.errorMessage);
         this.cdr.detectChanges();
-        this.router.navigate(['/ipo']);
-      })
-    }
+      }
+    });
   }
 
   onReset(){

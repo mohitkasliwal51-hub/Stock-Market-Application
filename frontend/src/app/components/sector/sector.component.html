@@ -1,5 +1,7 @@
 <app-navbar [state]="state"></app-navbar>
 <div class="container">
+  <div *ngIf="errorMessage" class="alert alert-danger" role="alert">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="alert alert-success" role="alert">{{ successMessage }}</div>
   <div class="mt-5 row container outer-div">
     <div class="dropdown col-xs-12 col-sm-6 col-xl-5 btn-div">
       <button class="btn btn-secondary dropdown-toggle col-12" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">

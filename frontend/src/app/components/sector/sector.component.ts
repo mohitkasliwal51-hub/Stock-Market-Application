@@ -3,6 +3,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Company } from 'src/app/models/company-model';
 import { Sector } from 'src/app/models/sector-model';
 import { AuthService } from 'src/app/services/auth.service';
+import { LiveAnnouncerService } from 'src/app/services/live-announcer.service';
 import { SectorService } from 'src/app/services/sector.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 
@@ -20,8 +21,10 @@ export class SectorComponent implements OnInit {
   public companies:Company[];
   public dropDownTitle:string;
   public currentSector:Sector;
+  public errorMessage:string;
+  public successMessage:string;
 
-  constructor(private authService:AuthService, private sectorService:SectorService, private cdr: ChangeDetectorRef){
+  constructor(private authService:AuthService, private sectorService:SectorService, private cdr: ChangeDetectorRef, private liveAnnouncer: LiveAnnouncerService){
     this.state="";
     this.sectors=[];
     this.companies=[];
@@ -31,6 +34,8 @@ export class SectorComponent implements OnInit {
       "name": "",
       "brief":""
     }
+    this.errorMessage = '';
+    this.successMessage = '';
   }
 
   ngOnInit(): void {
@@ -47,11 +52,17 @@ export class SectorComponent implements OnInit {
   }
 
   onLoadComapnies(){
+    this.errorMessage = '';
+    this.successMessage = '';
     if(this.dropDownTitle==="Please select sector"){
-      alert("Please select a sector");
+      this.errorMessage = 'Please select a sector';
+      this.liveAnnouncer.announceError(this.errorMessage);
     } else{
+      this.liveAnnouncer.announceStatus('Loading companies for selected sector.');
       this.sectorService.getCompanyBySector(this.currentSector.id).subscribe( allCompanies => {
         this.companies = allCompanies;
+        this.successMessage = `${allCompanies.length} compan${allCompanies.length === 1 ? 'y' : 'ies'} found.`;
+        this.liveAnnouncer.announceSuccess(this.successMessage);
         this.cdr.detectChanges();
       })
     }

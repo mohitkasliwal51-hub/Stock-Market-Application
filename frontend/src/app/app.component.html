@@ -1,1 +1,37 @@
 <router-outlet></router-outlet>
+
+<div class="app-notification-host">
+	<div *ngIf="notification$ | async as notification" class="app-notification" [ngClass]="notification.type" [class.is-hidden]="!notification.visible">
+		<div class="notification-content">
+			<div class="notification-line" [attr.aria-live]="notification.type === 'error' ? 'assertive' : 'polite'" [attr.role]="notification.type === 'error' ? 'alert' : 'status'" aria-atomic="true">
+				<strong class="notification-title">{{ notification.title }}:</strong>
+				<span class="notification-message">{{ notification.message }}</span>
+			</div>
+			<button *ngFor="let button of notification.buttons" type="button" class="btn btn-sm notification-button" (click)="triggerButton(button, notification)">
+				{{ button.label }}
+			</button>
+		</div>
+		<button type="button" class="notification-close" (click)="closeNotification()" aria-label="Dismiss notification">
+			<span class="notification-close-icon" aria-hidden="true"></span>
+		</button>
+	</div>
+</div>
+
+<div *ngIf="dialog$ | async as dialog" class="app-dialog-backdrop">
+	<div #dialogWindow class="app-dialog-window" role="dialog" aria-modal="true" tabindex="-1" [attr.aria-labelledby]="'dialog-title'" [attr.aria-describedby]="'dialog-message'">
+		<div class="dialog-header">
+			<h2 id="dialog-title">{{ dialog.title }}</h2>
+		</div>
+		<div id="dialog-message" class="dialog-message">{{ dialog.message }}</div>
+		<div class="dialog-actions">
+			<button *ngIf="dialog.kind !== 'alert'" type="button" class="btn btn-secondary" (click)="closeDialog(false)">{{ dialog.cancelLabel || 'Cancel' }}</button>
+			<ng-container *ngIf="dialog.kind === 'prompt'">
+				<div class="dialog-field">
+					<input #dialogInput type="text" class="form-control" data-dialog-focus [value]="dialog.inputValue || ''" [placeholder]="dialog.inputPlaceholder || ''" />
+				</div>
+				<button type="button" class="btn btn-primary" (click)="submitPrompt(dialogInput)">{{ dialog.confirmLabel }}</button>
+			</ng-container>
+			<button *ngIf="dialog.kind !== 'prompt'" type="button" class="btn btn-primary" data-dialog-focus (click)="closeDialog(true)">{{ dialog.confirmLabel }}</button>
+		</div>
+	</div>
+</div>

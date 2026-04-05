@@ -7,6 +7,7 @@ import { StockPrice } from 'src/app/models/stock-price-model';
 import { AuthService } from 'src/app/services/auth.service';
 import { CompanyService } from 'src/app/services/company.service';
 import { ExchangeService } from 'src/app/services/exchange.service';
+import { LiveAnnouncerService } from 'src/app/services/live-announcer.service';
 import { StockPriceService } from 'src/app/services/stock-price.service';
 import * as Highcharts from 'highcharts';
 import { NavbarComponent } from '../navbar/navbar.component';
@@ -30,11 +31,14 @@ export class ComparisonComponent implements OnInit {
   public exchangeSelected:Exchange;
   public fromTime:string;
   public toTime:string;
+  public errorMessage:string;
+  public successMessage:string;
+  public isLoading:boolean;
 
   highcharts = Highcharts;
   chartOptions: Highcharts.Options;
 
-  constructor(private authService:AuthService, private companyService:CompanyService, private exchangeService:ExchangeService, private stockPriceService:StockPriceService, private cdr: ChangeDetectorRef) {
+  constructor(private authService:AuthService, private companyService:CompanyService, private exchangeService:ExchangeService, private stockPriceService:StockPriceService, private cdr: ChangeDetectorRef, private liveAnnouncer: LiveAnnouncerService) {
     this.state="";
     this.stockPrices = [];
     this.companyTitle="Please choose a company";
@@ -43,6 +47,9 @@ export class ComparisonComponent implements OnInit {
     this.exchanges=[];
     this.fromTime="";
     this.toTime="";
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.isLoading = false;
     this.companySelected = {
       "id": 0,
       "companyName": "",
@@ -125,20 +132,61 @@ export class ComparisonComponent implements OnInit {
   }
 
   onSubmit(){
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    if (this.companySelected.id === 0) {
+      this.errorMessage = 'Please choose a company';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
+    }
+
+    if (this.exchangeSelected.id === 0) {
+      this.errorMessage = 'Please choose a stock exchange';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
+    }
+
+    if (!this.fromTime || !this.toTime) {
+      this.errorMessage = 'Please choose both from and to date-time values';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
+    }
+
+    if (new Date(this.fromTime).valueOf() >= new Date(this.toTime).valueOf()) {
+      this.errorMessage = 'From Date Time must be earlier than To Date Time';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
+    }
+
+    this.isLoading = true;
+    this.liveAnnouncer.announceStatus('Loading comparison data.');
     const fromTime = `${this.fromTime}.000+05:30`;
     const toTime = `${this.toTime}.000+05:30`;
-    this.stockPriceService.getStockPrices(this.companySelected.id, this.exchangeSelected.id, fromTime, toTime).subscribe( stockPrices => {
-      if(stockPrices.length){
-        this.stockPrices[this.stockPrices.length] = stockPrices;
-        console.log(this.stockPrices);
-        this.chartOptions.series?.push(this.getPriceSeries(stockPrices));
-        Highcharts.chart('chart-container', this.chartOptions);
-      } else{
-        alert("No data found for the requested period");
+    this.stockPriceService.getStockPrices(this.companySelected.id, this.exchangeSelected.id, fromTime, toTime).subscribe({
+      next: (stockPrices) => {
+        this.isLoading = false;
+        if(stockPrices.length){
+          this.stockPrices[this.stockPrices.length] = stockPrices;
+          console.log(this.stockPrices);
+          this.chartOptions.series?.push(this.getPriceSeries(stockPrices));
+          Highcharts.chart('chart-container', this.chartOptions);
+          this.successMessage = 'Comparison loaded successfully';
+          this.liveAnnouncer.announceSuccess(this.successMessage);
+        } else{
+          this.errorMessage = 'No data found for the requested period';
+          this.liveAnnouncer.announceError(this.errorMessage);
+        }
+        this.cdr.detectChanges();
+        this.onReset();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err?.error?.message || err?.error?.error?.message || 'Failed to load comparison data';
+        this.liveAnnouncer.announceError(this.errorMessage);
+        this.cdr.detectChanges();
       }
-      this.cdr.detectChanges();
-    })
-    this.onReset();
+    });
   }
 
   onReset(){

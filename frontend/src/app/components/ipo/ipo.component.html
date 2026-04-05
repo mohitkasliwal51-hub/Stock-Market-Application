@@ -1,5 +1,7 @@
 <app-navbar [state]="state"></app-navbar>
 <div class="container">
+  <div *ngIf="errorMessage" class="alert alert-danger" role="alert">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="alert alert-success" role="alert">{{ successMessage }}</div>
   <div class="container box-wrap">
     <h1>IPO's</h1>
     <button class="btn btn-dark add-btn col-2"  *ngIf="state=='admin'" routerLink="/addIpo">Add a IPO</button>
@@ -50,7 +52,7 @@
               <td>{{ c.remarks }}</td>
               <td class="text-nowrap">
                 <button class="btn btn-dark me-2" routerLink="/updateIpo/{{getCompanyId(c)}}">Update</button>
-                <button class="btn btn-danger" (click)="deleteIpo(c.id)">Delete</button>
+                <button class="btn btn-danger" (click)="deleteIpo(c)">Delete</button>
               </td>
             </tr>
           </tbody>

@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from "@angular/router"
 import { Exchange } from 'src/app/models/exchange-model';
 import { AuthService } from 'src/app/services/auth.service';
 import { ExchangeService } from 'src/app/services/exchange.service';
+import { LiveAnnouncerService } from 'src/app/services/live-announcer.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
@@ -19,8 +20,11 @@ export class AddExchangeComponent implements OnInit {
   public state:string;
   public exchange:Exchange;
   public exchangeId:number;
+  public errorMessage:string = '';
+  public successMessage:string = '';
+  public isLoading:boolean = false;
 
-  constructor(private authService:AuthService, private exchangeService:ExchangeService, private router: Router, private activatedRoute:ActivatedRoute, private cdr: ChangeDetectorRef) {
+  constructor(private authService:AuthService, private exchangeService:ExchangeService, private router: Router, private activatedRoute:ActivatedRoute, private cdr: ChangeDetectorRef, private liveAnnouncer: LiveAnnouncerService) {
     this.state="";
     this.exchangeId = Number(this.activatedRoute.snapshot.params["id"] || 0);
     this.exchange = this.createEmptyExchange();
@@ -49,21 +53,48 @@ export class AddExchangeComponent implements OnInit {
   }
 
   addExchange(){
-    if (this.exchangeId) {
-      this.exchangeService.updateExchange(this.exchangeId, this.exchange).subscribe(updatedExchange => {
-        console.log("Exchange Updated");
-        console.log(updatedExchange);
-        this.cdr.detectChanges();
-        this.router.navigate(['/exchange']);
-      });
-    } else {
-      this.exchangeService.addExchange(this.exchange).subscribe(exchange => {
-        console.log("Exchange Added");
-        console.log(exchange);
-        this.cdr.detectChanges();
-        this.router.navigate(['/exchange']);
-      });
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    if (!this.exchange.name?.trim() || !this.exchange.brief?.trim() || !this.exchange.remarks?.trim()) {
+      this.errorMessage = 'Please fill all required exchange details';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
     }
+
+    if (!this.exchange.address.street?.trim() || !this.exchange.address.city?.trim() || !this.exchange.address.country?.trim()) {
+      this.errorMessage = 'Please complete address details';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
+    }
+
+    if ((this.exchange.address.zipCode || 0) <= 0) {
+      this.errorMessage = 'Zip code must be greater than zero';
+      this.liveAnnouncer.announceError(this.errorMessage);
+      return;
+    }
+
+    this.isLoading = true;
+    this.liveAnnouncer.announceStatus(this.exchangeId ? 'Updating exchange details.' : 'Submitting exchange details.');
+    const request$ = this.exchangeId
+      ? this.exchangeService.updateExchange(this.exchangeId, this.exchange)
+      : this.exchangeService.addExchange(this.exchange);
+
+    request$.subscribe({
+      next: (exchange) => {
+        console.log(exchange);
+        this.successMessage = this.exchangeId ? 'Exchange updated successfully!' : 'Exchange added successfully!';
+        this.liveAnnouncer.announceSuccess(this.successMessage);
+        this.cdr.detectChanges();
+        setTimeout(() => this.router.navigate(['/exchange']), 1500);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err?.error?.message || err?.error?.error?.message || 'Failed to save exchange';
+        this.liveAnnouncer.announceError(this.errorMessage);
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   onReset(){

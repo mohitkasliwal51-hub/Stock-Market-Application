@@ -1,6 +1,8 @@
 <app-navbar [state]="state"></app-navbar>
 <div class="container">
   <h1>Upload Data</h1>
+  <div *ngIf="errorMessage" class="alert alert-danger" role="alert">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="alert alert-success" role="alert">{{ successMessage }}</div>
   <div class="form-div">
     <form>
       <div class="form-group col-lg-6 col-sm-10">
@@ -10,8 +12,8 @@
         </div>
       </div>
       <div class="btn-group">
-        <button type="button" class="btn btn-dark btn-lg" (click)=onSubmit()>Upload</button>
-        <button type="reset" class="btn btn-secondary btn-lg" id="reset">Reset</button>
+        <button type="button" class="btn btn-dark btn-lg" (click)=onSubmit() [disabled]="isLoading">{{ isLoading ? 'Uploading...' : 'Upload' }}</button>
+        <button type="reset" class="btn btn-secondary btn-lg" id="reset" [disabled]="isLoading">Reset</button>
       </div>
     </form>
   </div>

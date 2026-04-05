@@ -4,8 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Company } from 'src/app/models/company-model';
 import { Sector } from 'src/app/models/sector-model';
+import { AppDialogService } from 'src/app/services/app-dialog.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { CompanyService } from 'src/app/services/company.service';
+import { LiveAnnouncerService } from 'src/app/services/live-announcer.service';
 import { SectorService } from 'src/app/services/sector.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 
@@ -22,12 +24,18 @@ export class CompanyComponent implements OnInit {
   public companies:Company[];
   public sectors:Sector[];
   public pattern:string;
+  public errorMessage:string;
+  public successMessage:string;
+  public statusMessage:string;
 
-  constructor(private authService:AuthService, private companyService:CompanyService, private sectorService:SectorService, private cdr: ChangeDetectorRef) {
+  constructor(private authService:AuthService, private companyService:CompanyService, private sectorService:SectorService, private cdr: ChangeDetectorRef, private liveAnnouncer: LiveAnnouncerService, private appDialog: AppDialogService) {
     this.state="";
     this.companies=[];
     this.sectors=[];
     this.pattern="";
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.statusMessage = '';
   }
 
   ngOnInit(): void {
@@ -47,9 +55,15 @@ export class CompanyComponent implements OnInit {
   }
 
   public getCompanyByPattern(){
+    this.errorMessage = '';
+    this.successMessage = '';
     if(this.pattern != ""){
+      this.statusMessage = 'Searching companies by name.';
+      this.liveAnnouncer.announceStatus(this.statusMessage);
       this.companyService.getCompanyByName(this.pattern).subscribe( foundCompanies => {
         this.companies = foundCompanies;
+        this.successMessage = `${foundCompanies.length} compan${foundCompanies.length === 1 ? 'y' : 'ies'} found.`;
+        this.liveAnnouncer.announceSuccess(this.successMessage);
         this.cdr.detectChanges();
       });
     } else {
@@ -57,12 +71,32 @@ export class CompanyComponent implements OnInit {
     }
   }
 
-  public deleteCompany(id:number){
-    this.companyService.deleteCompany(id).subscribe( company =>{
-      console.log(company);
-      this.getAllCompanies();
-      this.cdr.detectChanges();
-    })
+  public async deleteCompany(company:Company){
+    const companyName = this.getCompanyName(company);
+    const confirmed = await this.appDialog.confirm(`Do you want to deactivate company ${companyName} with ID ${company.id}?`, {
+      title: 'Deactivate Company',
+      confirmLabel: 'Deactivate'
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.statusMessage = `Deactivating company ${companyName} (ID ${company.id}).`;
+    this.liveAnnouncer.announceStatus(this.statusMessage);
+    this.companyService.deleteCompany(company.id).subscribe({
+      next: () =>{
+        this.successMessage = `Company ${companyName} (ID ${company.id}) deactivated successfully.`;
+        this.errorMessage = '';
+        this.liveAnnouncer.announceSuccess(this.successMessage);
+        this.getAllCompanies();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message || err?.error?.error?.message || `Failed to deactivate company ${companyName} (ID ${company.id}).`;
+        this.successMessage = '';
+        this.liveAnnouncer.announceError(this.errorMessage);
+      }
+    });
   }
 
   public getCompanyName(company:Company):string{
@@ -97,11 +131,38 @@ export class CompanyComponent implements OnInit {
     return false;
   }
 
-  public updateCompanyStatus(id:number, action:'approve'|'reject'|'suspend'|'deactivate'|'ban'){
-    this.companyService.updateCompanyStatus(id, action).subscribe(updatedCompany => {
-      console.log(updatedCompany);
-      this.getAllCompanies();
-      this.cdr.detectChanges();
+  public async updateCompanyStatus(company:Company, action:'approve'|'reject'|'suspend'|'deactivate'|'ban'){
+    const actionLabels = {
+      'approve': 'approve',
+      'reject': 'reject',
+      'suspend': 'suspend',
+      'deactivate': 'deactivate',
+      'ban': 'ban'
+    };
+    const companyName = this.getCompanyName(company);
+    const confirmed = await this.appDialog.confirm(`Do you want to ${actionLabels[action]} company ${companyName} with ID ${company.id}?`, {
+      title: 'Update Company Status',
+      confirmLabel: 'Proceed'
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.statusMessage = `Updating company ${companyName} (ID ${company.id}) status to ${action}.`;
+    this.liveAnnouncer.announceStatus(this.statusMessage);
+    this.companyService.updateCompanyStatus(company.id, action).subscribe({
+      next: () => {
+        this.successMessage = `Company ${companyName} (ID ${company.id}) ${action}d successfully.`;
+        this.errorMessage = '';
+        this.liveAnnouncer.announceSuccess(this.successMessage);
+        this.getAllCompanies();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message || err?.error?.error?.message || `Failed to ${action} company ${companyName} (ID ${company.id}).`;
+        this.successMessage = '';
+        this.liveAnnouncer.announceError(this.errorMessage);
+      }
     });
   }
 

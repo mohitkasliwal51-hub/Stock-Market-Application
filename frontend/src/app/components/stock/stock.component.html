@@ -1,6 +1,17 @@
 <app-navbar [state]="state"></app-navbar>
 <div class="container">
   <h1>Add Your Stock</h1>
+  
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+  </div>
+  
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+  
   <form>
     <div class="dropdown col-xs-6 col-sm-10 col-xl-6">
       <button class="btn btn-outline-dark dropdown-toggle col-12" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
@@ -23,8 +34,11 @@
       <input type="text" name="stockCode" class="form-control" placeholder="Enter Stock Code" required [(ngModel)]="stock.stockCode">
     </div>
     <div class="btn-grp row">
-      <button type="button" class="btn btn-dark col-lg-2 col-md-3 col-sm-5 col-xs-6" (click)="addStock()">Submit</button>
-      <button type="reset" class="btn btn-secondary col-lg-2 col-md-3 col-sm-5 col-xs-6" id="reset-btn" (click)="onReset()">Reset</button>
+      <button type="button" class="btn btn-dark col-lg-2 col-md-3 col-sm-5 col-xs-6" (click)="addStock()" [disabled]="isLoading">
+        <span *ngIf="!isLoading">Submit</span>
+        <span *ngIf="isLoading"><span class="spinner-border spinner-border-sm me-2"></span>Loading...</span>
+      </button>
+      <button type="reset" class="btn btn-secondary col-lg-2 col-md-3 col-sm-5 col-xs-6" id="reset-btn" (click)="onReset()" [disabled]="isLoading">Reset</button>
     </div>
   </form>
 </div>
