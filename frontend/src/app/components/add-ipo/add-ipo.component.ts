@@ -50,19 +50,24 @@ export class AddIpoComponent implements OnInit {
     this.state = this.authService.getCurrentUserRole();
     this.companyService.getAllCompanies().subscribe(companies => {
       this.companies = companies;
-      this.syncSelectedLabels();
+      if (this.companyId) {
+        this.loadIpoData();
+      } else {
+        this.syncSelectedLabels();
+      }
     });
     this.exchangeService.getAllExchanges().subscribe(exchanges => {
       this.exchanges = exchanges;
       this.syncSelectedLabels();
     });
-    if(this.companyId){
-      this.ipoService.getIpoByCompany(this.companyId).subscribe( ipo => {
-        this.ipo = ipo;
-        this.syncSelectedLabels();
-        this.ipo.dateTime = this.ipo.dateTime.substr(0,16);
-      })
-    }
+  }
+
+  private loadIpoData(): void {
+    this.ipoService.getIpoByCompany(this.companyId).subscribe(ipo => {
+      this.ipo = ipo;
+      this.syncSelectedLabels();
+      this.ipo.dateTime = this.ipo.dateTime.substr(0, 16);
+    });
   }
 
   onCompanyClick(company:Company){
@@ -76,11 +81,11 @@ export class AddIpoComponent implements OnInit {
   }
 
   addStock(){
+    console.log(this.ipo);
     var date: string = this.ipo.dateTime+":00.000+05:30";
     this.ipo.dateTime = date;
-    console.log(this.ipo);
     if (this.companyId) {
-      this.ipoService.updateIpo(this.ipo.id, this.ipo).subscribe( updatedIpo => {
+      this.ipoService.updateIpo(this.companyId, this.ipo).subscribe( updatedIpo => {
         console.log(updatedIpo);
       })
     } else {

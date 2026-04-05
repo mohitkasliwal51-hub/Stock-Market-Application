@@ -31,7 +31,8 @@
             <td>{{ c.address.zipCode }}</td>
             <td>{{ c.remarks }}</td>
             <td *ngIf="state === 'admin'" class="text-nowrap">
-              <button class="btn btn-dark" routerLink="/stock">Add Company</button>
+              <button class="btn btn-dark me-2" routerLink="/updateExchange/{{c.id}}">Update</button>
+              <button class="btn btn-danger" (click)="deleteExchange(c.id)">Delete</button>
             </td>
           </tr>
         </tbody>

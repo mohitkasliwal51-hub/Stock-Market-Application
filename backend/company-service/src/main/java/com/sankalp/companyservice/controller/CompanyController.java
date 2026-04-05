@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import com.sankalp.companyservice.dto.ApiResult;
 import com.sankalp.companyservice.dto.CompanyDto;
 import com.sankalp.companyservice.entity.Company;
+import com.sankalp.companyservice.entity.CompanyStatus;
 import com.sankalp.companyservice.mapper.CompanyMapper;
 import com.sankalp.companyservice.service.CompanyService;
 import com.sankalp.companyservice.service.DeleteCompanyResult;
@@ -142,5 +143,60 @@ public class CompanyController {
 			@PathVariable("exchangeId") int exchangeId){
 		List<CompanyDto> companies = companyMapper.toDtoList(companyService.getCompanyByStockExchangeId(exchangeId));
 		return ResponseEntity.ok(ApiResult.success("Companies retrieved successfully", companies));
+	}
+
+	@GetMapping("/pending-approval")
+	@Operation(summary = "Get pending companies", description = "Retrieve companies waiting for admin approval")
+	public ResponseEntity<ApiResult<List<CompanyDto>>> getPendingApprovalCompanies() {
+		List<CompanyDto> companies = companyMapper.toDtoList(companyService.getPendingApprovalCompanies());
+		return ResponseEntity.ok(ApiResult.success("Pending approval companies retrieved successfully", companies));
+	}
+
+	@PutMapping("/{id}/approve")
+	@Operation(summary = "Approve company", description = "Approve a pending company")
+	public ResponseEntity<ApiResult<CompanyDto>> approveCompany(@PathVariable("id") int id) {
+		return updateCompanyStatus(id, CompanyStatus.APPROVED);
+	}
+
+	@PutMapping("/{id}/reject")
+	@Operation(summary = "Reject company", description = "Reject a pending company")
+	public ResponseEntity<ApiResult<CompanyDto>> rejectCompany(@PathVariable("id") int id) {
+		return updateCompanyStatus(id, CompanyStatus.REJECTED);
+	}
+
+	@PutMapping("/{id}/suspend")
+	@Operation(summary = "Suspend company", description = "Suspend an approved company")
+	public ResponseEntity<ApiResult<CompanyDto>> suspendCompany(@PathVariable("id") int id) {
+		return updateCompanyStatus(id, CompanyStatus.SUSPENDED);
+	}
+
+	@PutMapping("/{id}/deactivate")
+	@Operation(summary = "Deactivate company", description = "Deactivate a company")
+	public ResponseEntity<ApiResult<CompanyDto>> deactivateCompanyByStatus(@PathVariable("id") int id) {
+		return updateCompanyStatus(id, CompanyStatus.DEACTIVATED);
+	}
+
+	@PutMapping("/{id}/ban")
+	@Operation(summary = "Ban company", description = "Ban a company from listing")
+	public ResponseEntity<ApiResult<CompanyDto>> banCompany(@PathVariable("id") int id) {
+		return updateCompanyStatus(id, CompanyStatus.BANNED);
+	}
+
+	private ResponseEntity<ApiResult<CompanyDto>> updateCompanyStatus(int id, CompanyStatus status) {
+		Company existingCompany = companyService.getCompanyById(id);
+		if (existingCompany == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(ApiResult.error("Company not found with id: " + id));
+		}
+
+		Company updatedCompany = companyService.updateCompanyStatus(id, status);
+		if (updatedCompany == null) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(ApiResult.error("Invalid status transition from "
+							+ existingCompany.getStatus() + " to " + status));
+		}
+
+		CompanyDto responseDto = companyMapper.toDto(updatedCompany);
+		return ResponseEntity.ok(ApiResult.success("Company status updated successfully", responseDto));
 	}
 }

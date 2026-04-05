@@ -73,6 +73,38 @@ export class CompanyComponent implements OnInit {
     return company.briefWriteup || company.brief || '';
   }
 
+  public getCompanyStatus(company:Company):string{
+    return company.status || 'PENDING';
+  }
+
+  public isActionAllowed(company:Company, action:'approve'|'reject'|'suspend'|'deactivate'|'ban'):boolean{
+    const status = this.getCompanyStatus(company);
+    if (action === 'approve') {
+      return status === 'PENDING' || status === 'SUSPENDED' || status === 'DEACTIVATED';
+    }
+    if (action === 'reject') {
+      return status === 'PENDING';
+    }
+    if (action === 'suspend') {
+      return status === 'APPROVED';
+    }
+    if (action === 'deactivate') {
+      return status === 'APPROVED' || status === 'SUSPENDED';
+    }
+    if (action === 'ban') {
+      return status !== 'BANNED';
+    }
+    return false;
+  }
+
+  public updateCompanyStatus(id:number, action:'approve'|'reject'|'suspend'|'deactivate'|'ban'){
+    this.companyService.updateCompanyStatus(id, action).subscribe(updatedCompany => {
+      console.log(updatedCompany);
+      this.getAllCompanies();
+      this.cdr.detectChanges();
+    });
+  }
+
   public getSectorName(company:Company):string{
     if (company.sector?.name) {
       return company.sector.name;

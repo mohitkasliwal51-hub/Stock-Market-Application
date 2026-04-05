@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from "@angular/router"
+import { ActivatedRoute, Router } from "@angular/router"
 import { Exchange } from 'src/app/models/exchange-model';
 import { AuthService } from 'src/app/services/auth.service';
 import { ExchangeService } from 'src/app/services/exchange.service';
@@ -18,9 +18,11 @@ export class AddExchangeComponent implements OnInit {
 
   public state:string;
   public exchange:Exchange;
+  public exchangeId:number;
 
-  constructor(private authService:AuthService, private exchangeService:ExchangeService, private router: Router) {
+  constructor(private authService:AuthService, private exchangeService:ExchangeService, private router: Router, private activatedRoute:ActivatedRoute) {
     this.state="";
+    this.exchangeId = this.activatedRoute.snapshot.params["id"];
     this.exchange={
       "id":0,
       "name":"",
@@ -37,13 +39,25 @@ export class AddExchangeComponent implements OnInit {
 
   ngOnInit(): void {
     this.state = this.authService.getCurrentUserRole();
+    if (this.exchangeId) {
+      this.exchangeService.getExchangeById(this.exchangeId).subscribe(exchange => {
+        this.exchange = exchange;
+      });
+    }
   }
 
   addExchange(){
-    this.exchangeService.addExchange(this.exchange).subscribe(exchange => {
-      console.log("Exchange Added");
-      console.log(exchange);
-    });
+    if (this.exchangeId) {
+      this.exchangeService.updateExchange(this.exchangeId, this.exchange).subscribe(updatedExchange => {
+        console.log("Exchange Updated");
+        console.log(updatedExchange);
+      });
+    } else {
+      this.exchangeService.addExchange(this.exchange).subscribe(exchange => {
+        console.log("Exchange Added");
+        console.log(exchange);
+      });
+    }
     this.router.navigate(['/exchange']);
   }
 

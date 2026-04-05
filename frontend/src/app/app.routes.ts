@@ -13,22 +13,23 @@ import { NotFoundComponent } from './components/not-found/not-found.component';
 import { SectorComponent } from './components/sector/sector.component';
 import { SignupComponent } from './components/signup/signup.component';
 import { StockComponent } from './components/stock/stock.component';
+import { adminGuard, authGuard } from './guards/route-auth.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
-  { path: 'company', component: CompanyComponent },
-  { path: 'addCompany', component: AddCompanyComponent },
-  { path: 'updateCompany/:id', component: AddCompanyComponent },
-  { path: 'comparison', component: ComparisonComponent },
-  { path: 'exchange', component: ExchangeComponent },
-  { path: 'addExchange', component: AddExchangeComponent },
-  { path: 'ipo', component: IpoComponent },
-  { path: 'addIpo', component: AddIpoComponent },
-  { path: 'updateIpo/:id', component: AddIpoComponent },
-  { path: 'sector', component: SectorComponent },
-  { path: 'stock', component: StockComponent },
-  { path: 'importData', component: ExcelDataComponent },
+  { path: 'company', component: CompanyComponent, canActivate: [adminGuard] },
+  { path: 'addCompany', component: AddCompanyComponent, canActivate: [adminGuard] },
+  { path: 'updateCompany/:id', component: AddCompanyComponent, canActivate: [adminGuard] },
+  { path: 'comparison', component: ComparisonComponent, canActivate: [authGuard] },
+  { path: 'exchange', component: ExchangeComponent, canActivate: [adminGuard] },
+  { path: 'addExchange', component: AddExchangeComponent, canActivate: [adminGuard] },
+  { path: 'ipo', component: IpoComponent, canActivate: [authGuard] },
+  { path: 'addIpo', component: AddIpoComponent, canActivate: [adminGuard] },
+  { path: 'updateIpo/:id', component: AddIpoComponent, canActivate: [adminGuard] },
+  { path: 'sector', component: SectorComponent, canActivate: [authGuard] },
+  { path: 'stock', component: StockComponent, canActivate: [adminGuard] },
+  { path: 'importData', component: ExcelDataComponent, canActivate: [adminGuard] },
   { path: '**', component: NotFoundComponent }
 ];

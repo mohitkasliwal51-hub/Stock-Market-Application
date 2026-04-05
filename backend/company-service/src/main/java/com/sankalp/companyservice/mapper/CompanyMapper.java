@@ -19,6 +19,7 @@ public class CompanyMapper {
         dto.setBoardOfDirectors(company.getBod());
         dto.setBriefWriteup(company.getBrief());
         dto.setTurnover(java.math.BigDecimal.valueOf(company.getTurnover()));
+        dto.setStatus(company.getStatus());
         // Handle sector relationship
         if (company.getSector() != null) {
             dto.setSectorId(company.getSector().getId());
@@ -36,6 +37,7 @@ public class CompanyMapper {
         company.setCeo(dto.getCeo());
         company.setBod(dto.getBoardOfDirectors());
         company.setBrief(dto.getBriefWriteup());
+        company.setStatus(dto.getStatus());
         // Convert BigDecimal to long
         if (dto.getTurnover() != null) {
             company.setTurnover(dto.getTurnover().longValue());

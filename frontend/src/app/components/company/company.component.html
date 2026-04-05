@@ -21,6 +21,7 @@
             <th *ngIf="state === 'admin'">CEO</th>
             <th *ngIf="state === 'admin'">Board</th>
             <th *ngIf="state === 'admin'">Turnover</th>
+            <th *ngIf="state === 'admin'">Status</th>
             <th *ngIf="state === 'admin'">Actions</th>
           </tr>
         </thead>
@@ -34,9 +35,14 @@
             <td *ngIf="state === 'admin'">{{ c.ceo }}</td>
             <td *ngIf="state === 'admin'">{{ c.boardOfDirectors }}</td>
             <td *ngIf="state === 'admin'">{{ c.turnover | currency:'INR' }}</td>
+            <td *ngIf="state === 'admin'">{{ getCompanyStatus(c) }}</td>
             <td *ngIf="state === 'admin'" class="text-nowrap">
               <button class="btn btn-dark me-2" routerLink="/updateCompany/{{c.id}}">Update</button>
               <button class="btn btn-danger" (click)="deleteCompany(c.id)">Deactivate</button>
+              <button class="btn btn-success ms-2" [disabled]="!isActionAllowed(c, 'approve')" (click)="updateCompanyStatus(c.id, 'approve')">Approve</button>
+              <button class="btn btn-warning ms-2" [disabled]="!isActionAllowed(c, 'reject')" (click)="updateCompanyStatus(c.id, 'reject')">Reject</button>
+              <button class="btn btn-secondary ms-2" [disabled]="!isActionAllowed(c, 'suspend')" (click)="updateCompanyStatus(c.id, 'suspend')">Suspend</button>
+              <button class="btn btn-outline-danger ms-2" [disabled]="!isActionAllowed(c, 'ban')" (click)="updateCompanyStatus(c.id, 'ban')">Ban</button>
             </td>
           </tr>
         </tbody>

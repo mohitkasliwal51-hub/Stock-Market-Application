@@ -1,6 +1,7 @@
 <app-navbar [state]="state"></app-navbar>
 <div class="container">
-  <h1>Add Stock Exchange</h1>
+  <h1 *ngIf="!this.exchangeId">Add Stock Exchange</h1>
+  <h1 *ngIf="this.exchangeId">Update Stock Exchange</h1>
     <form>
       <div class="user-form row">
         <div class="col-lg-6 col-xs-12">

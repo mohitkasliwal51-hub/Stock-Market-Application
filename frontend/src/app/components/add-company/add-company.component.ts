@@ -43,15 +43,20 @@ export class AddCompanyComponent implements OnInit {
   ngOnInit(): void {
     this.state = this.authService.getCurrentUserRole();
     this.sectorService.getAllSectors().subscribe( sectors => {
-      this.sectors=sectors;
-      this.syncSelectedSectorTitle();
-    })
-    if(this.companyId){
-      this.companyService.getCompanyById(this.companyId).subscribe( companyFound => {
-        this.company = companyFound;
+      this.sectors = sectors;
+      if (this.companyId) {
+        this.loadCompanyData();
+      } else {
         this.syncSelectedSectorTitle();
-      })
-    }
+      }
+    })
+  }
+
+  private loadCompanyData(): void {
+    this.companyService.getCompanyById(this.companyId).subscribe(companyFound => {
+      this.company = companyFound;
+      this.syncSelectedSectorTitle();
+    });
   }
 
   addCompany(){

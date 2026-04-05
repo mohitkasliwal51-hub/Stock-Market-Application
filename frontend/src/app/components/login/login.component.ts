@@ -17,19 +17,29 @@ export class LoginComponent implements OnInit {
   public state:string
   public username:string;
   public password:string;
+  public errorMessage:string;
 
   constructor(private authService:AuthService, private router:Router) {
     this.state = "unauthorized";
     this.username="";
     this.password="";
+    this.errorMessage="";
   }
 
   ngOnInit(): void {
   }
 
-  onSubmit(){
-    this.authService.authenticate(this.username, this.password);
-    this.router.navigate(['/']);
+  onSubmit(event?:Event){
+    event?.preventDefault();
+    this.errorMessage = "";
+    this.authService.login(this.username, this.password).subscribe({
+      next: () => {
+        this.router.navigate(['/']);
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message || err?.error?.error?.message || 'Invalid credentials';
+      }
+    });
   }
 
 }

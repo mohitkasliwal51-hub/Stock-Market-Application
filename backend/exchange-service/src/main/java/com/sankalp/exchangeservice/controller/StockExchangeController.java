@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.sankalp.exchangeservice.dto.ApiResult;
@@ -151,7 +152,7 @@ public class StockExchangeController {
 					new ParameterizedTypeReference<ApiResult<List<CompanyDto>>>() {}
 			);
 			return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
-		} catch (Exception ex) {
+		} catch (RestClientException ex) {
 			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
 					.body(ApiResult.error("Failed to retrieve companies from Company Service"));
 		}

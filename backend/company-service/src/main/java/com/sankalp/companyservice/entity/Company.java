@@ -1,15 +1,16 @@
 package com.sankalp.companyservice.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Column;
-import jakarta.persistence.ManyToOne;
-
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -35,6 +36,10 @@ public class Company {
 	private String brief;
 	
 	private String bod;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private CompanyStatus status = CompanyStatus.PENDING;
 
 	@Column(name = "is_deleted", nullable = false)
 	private boolean deleted = false;

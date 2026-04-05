@@ -49,7 +49,8 @@
               <td>{{ c.dateTime | date:'medium' }}</td>
               <td>{{ c.remarks }}</td>
               <td class="text-nowrap">
-                <button class="btn btn-dark" routerLink="/updateIpo/{{getCompanyId(c)}}">Update</button>
+                <button class="btn btn-dark me-2" routerLink="/updateIpo/{{getCompanyId(c)}}">Update</button>
+                <button class="btn btn-danger" (click)="deleteIpo(c.id)">Delete</button>
               </td>
             </tr>
           </tbody>

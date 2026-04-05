@@ -5,6 +5,8 @@ import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { Company } from '../models/company-model';
 
+export type CompanyStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED' | 'DEACTIVATED' | 'BANNED';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -21,7 +23,8 @@ export class CompanyService {
       "getCompanyByName":this.apiUrl+"/search",
       "updateCompany":this.apiUrl,
       "deleteCompany":this.apiUrl,
-      "addCompany":this.apiUrl
+      "addCompany":this.apiUrl,
+      "getPendingApprovalCompanies":this.apiUrl+"/pending-approval"
     }
   }
 
@@ -66,6 +69,14 @@ export class CompanyService {
 
   public getCompaniesByExchange(exchangeId:number):Observable<Company[]>{
     return this.httpClient.get<{data: Company[]}>(this.apiUrl+"/by-exchange/"+exchangeId).pipe(map(response => response.data));
+  }
+
+  public getPendingApprovalCompanies():Observable<Company[]>{
+    return this.httpClient.get<{data: Company[]}>(this.apiPaths.getPendingApprovalCompanies).pipe(map(response => response.data));
+  }
+
+  public updateCompanyStatus(id:number, action:'approve'|'reject'|'suspend'|'deactivate'|'ban'):Observable<Company>{
+    return this.httpClient.put<{data: Company}>(`${this.apiUrl}/${id}/${action}`, {}).pipe(map(response => response.data));
   }
 
 }

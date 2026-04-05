@@ -100,4 +100,12 @@ export class IpoComponent implements OnInit {
     return ipo.stockExchangeId;
   }
 
+  public deleteIpo(id:number):void{
+    this.ipoService.deleteIpo(id).subscribe(() => {
+      console.log('IPO deleted');
+      this.getAllIpos();
+      this.cdr.detectChanges();
+    });
+  }
+
 }

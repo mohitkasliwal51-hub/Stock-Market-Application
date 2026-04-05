@@ -2,6 +2,8 @@ package com.sankalp.companyservice.dto;
 
 import java.math.BigDecimal;
 
+import com.sankalp.companyservice.entity.CompanyStatus;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -28,6 +30,7 @@ public class CompanyDto {
     private String boardOfDirectors;
     private Integer sectorId;
     private String briefWriteup;
+    private CompanyStatus status;
     @NotNull(message = "Turnover is required")
     @Positive(message = "Turnover must be positive")
     private BigDecimal turnover;

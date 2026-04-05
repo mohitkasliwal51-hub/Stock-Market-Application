@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.sankalp.excelservice.dto.ApiResult;
@@ -79,7 +80,7 @@ public class ExcelDataController {
 				return ResponseEntity.status(HttpStatus.ACCEPTED)
 						.body(ApiResult.success("Some records failed processing", failedInserts));
 			}
-		} catch (Exception e) {
+		} catch (RestClientException e) {
 			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
 					.body(ApiResult.error("Company service is unavailable: " + e.getMessage(), "SERVICE_UNAVAILABLE"));
 		}

@@ -44,6 +44,7 @@ $serviceCommands = @(
     @{ Title = 'Eureka Service';     WorkingDirectory = (Join-Path $backendRoot 'eureka-service');     Command = (Get-MavenRunCommand -PomPath (Join-Path $backendRoot 'eureka-service\pom.xml') -Profile $null) },
     @{ Title = 'Config Service';      WorkingDirectory = (Join-Path $backendRoot 'config-service');      Command = (Get-MavenRunCommand -PomPath (Join-Path $backendRoot 'config-service\pom.xml') -Profile $null) },
     @{ Title = 'Company Service';     WorkingDirectory = (Join-Path $backendRoot 'company-service');     Command = (Get-MavenRunCommand -PomPath (Join-Path $backendRoot 'company-service\pom.xml') -Profile $companyProfile) },
+    @{ Title = 'User Service';        WorkingDirectory = (Join-Path $backendRoot 'user-service');        Command = (Get-MavenRunCommand -PomPath (Join-Path $backendRoot 'user-service\pom.xml') -Profile $null) },
     @{ Title = 'Exchange Service';    WorkingDirectory = (Join-Path $backendRoot 'exchange-service');    Command = (Get-MavenRunCommand -PomPath (Join-Path $backendRoot 'exchange-service\pom.xml') -Profile $null) },
     @{ Title = 'Sector Service';      WorkingDirectory = (Join-Path $backendRoot 'sector-service');      Command = (Get-MavenRunCommand -PomPath (Join-Path $backendRoot 'sector-service\pom.xml') -Profile $null) },
     @{ Title = 'Excel Service';       WorkingDirectory = (Join-Path $backendRoot 'excel-service');       Command = (Get-MavenRunCommand -PomPath (Join-Path $backendRoot 'excel-service\pom.xml') -Profile $null) },

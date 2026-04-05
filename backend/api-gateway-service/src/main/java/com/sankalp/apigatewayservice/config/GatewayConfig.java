@@ -45,6 +45,11 @@ public class GatewayConfig {
                 .route("SECTOR-SERVICE", r -> r.path("/api/sectors/**")
                         .and().method("GET", "POST", "PUT", "DELETE")
                         .uri("lb://SECTOR-SERVICE"))
+
+                // USER-SERVICE auth routes
+                .route("USER-SERVICE", r -> r.path("/api/auth/**")
+                        .and().method("GET", "POST")
+                        .uri("lb://USER-SERVICE"))
                 .build();
     }
 }

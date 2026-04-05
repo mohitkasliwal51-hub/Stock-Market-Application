@@ -49,4 +49,13 @@ export class IpoService {
     return this.httpClient.put<{data: Ipo}>(this.apiPaths.updateIpo+"/"+id, ipo, httpOptions).pipe(map(response => response.data));
   }
 
+  public deleteIpo(id:number):Observable<Ipo>{
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type':  'application/json'
+      })
+    };
+    return this.httpClient.delete<{data: Ipo}>(this.apiPaths.getAllIpos+"/"+id, httpOptions).pipe(map(response => response.data));
+  }
+
 }

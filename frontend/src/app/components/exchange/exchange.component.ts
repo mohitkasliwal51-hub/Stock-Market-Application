@@ -31,4 +31,12 @@ export class ExchangeComponent implements OnInit {
     });
   }
 
+  public deleteExchange(id:number):void {
+    this.exchangeService.deleteExchange(id).subscribe(() => {
+      console.log('Exchange deleted');
+      this.ngOnInit();
+      this.cdr.detectChanges();
+    });
+  }
+
 }
