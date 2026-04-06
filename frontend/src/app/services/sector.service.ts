@@ -64,8 +64,5 @@ export class SectorService {
     return this.httpClient.get<{data: Company[]}>(this.apiPaths.getCompaniesBySector+"/"+id+"/companies").pipe(map(response => response.data));
   }
 
-  public getCompanyBySector(id:number):Observable<Company[]>{
-    return this.getCompaniesBySector(id);
-  }
 
 }

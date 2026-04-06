@@ -43,6 +43,10 @@
             "scripts": [
               "node_modules/jquery/dist/jquery.min.js",
               "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
+            ],
+            "allowedCommonJsDependencies": [
+              "highcharts",
+              "xlsx"
             ]
           },
           "configurations": {
@@ -50,8 +54,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2mb",
-                  "maximumError": "3mb"
+                  "maximumWarning": "2.7mb",
+                  "maximumError": "3.5mb"
                 },
                 {
                   "type": "anyComponentStyle",

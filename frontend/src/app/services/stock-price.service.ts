@@ -26,9 +26,6 @@ export class StockPriceService {
     return this.httpClient.get<{data: StockPrice[]}>(this.apiPaths.getAllStockPrices).pipe(map(response => response.data));
   }
 
-  public getStockPrices(companyId:number, exchangeId:number, from:string, to:string):Observable<StockPrice[]>{
-    return this.getStockPricesByCompany(companyId, exchangeId, from, to);
-  }
 
   public getStockPricesByCompany(companyId:number, exchangeId:number, from:string, to:string):Observable<StockPrice[]>{
     return this.httpClient.get<{data: StockPrice[]}>(this.apiPaths.getStockPrice+`/${companyId}/${exchangeId}/${encodeURIComponent(from)}/${encodeURIComponent(to)}`).pipe(map(response => response.data));

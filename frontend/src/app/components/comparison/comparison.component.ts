@@ -163,7 +163,7 @@ export class ComparisonComponent implements OnInit {
     this.liveAnnouncer.announceStatus('Loading comparison data.');
     const fromTime = `${this.fromTime}.000+05:30`;
     const toTime = `${this.toTime}.000+05:30`;
-    this.stockPriceService.getStockPrices(this.companySelected.id, this.exchangeSelected.id, fromTime, toTime).subscribe({
+    this.stockPriceService.getStockPricesByCompany(this.companySelected.id, this.exchangeSelected.id, fromTime, toTime).subscribe({
       next: (stockPrices) => {
         this.isLoading = false;
         if(stockPrices.length){

@@ -1,0 +1,140 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "_stack:stop",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/stop-apps.ps1"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "hide": true
+    },
+    {
+      "label": "_stack:start",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/start-all-services.ps1",
+        "-TimeoutSeconds",
+        "300"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "hide": true
+    },
+    {
+      "label": "run:all:services",
+      "dependsOn": [
+        "_stack:stop",
+        "_stack:start"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "stop:all:services",
+      "dependsOn": [
+        "_stack:stop"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "test:backend:integration",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/run-backend-integration-tests.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/backend/api-gateway-service"
+      },
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "test:frontend:unit",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-Command",
+        "& npm run test:ci"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "test:frontend:browser:headed",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-Command",
+        "& npm run test:live-ui:headed:1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "test:live",
+      "dependsOn": [
+        "_stack:stop",
+        "_stack:start",
+        "test:backend:integration",
+        "test:frontend:unit",
+        "test:frontend:browser:headed"
+      ],
+      "dependsOrder": "sequence",
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}

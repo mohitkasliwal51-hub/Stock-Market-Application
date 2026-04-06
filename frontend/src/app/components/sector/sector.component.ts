@@ -59,7 +59,7 @@ export class SectorComponent implements OnInit {
       this.liveAnnouncer.announceError(this.errorMessage);
     } else{
       this.liveAnnouncer.announceStatus('Loading companies for selected sector.');
-      this.sectorService.getCompanyBySector(this.currentSector.id).subscribe( allCompanies => {
+      this.sectorService.getCompaniesBySector(this.currentSector.id).subscribe( allCompanies => {
         this.companies = allCompanies;
         this.successMessage = `${allCompanies.length} compan${allCompanies.length === 1 ? 'y' : 'ies'} found.`;
         this.liveAnnouncer.announceSuccess(this.successMessage);
