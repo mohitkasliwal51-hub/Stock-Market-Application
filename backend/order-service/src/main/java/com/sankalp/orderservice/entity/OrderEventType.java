@@ -5,6 +5,7 @@ public enum OrderEventType {
 	EVALUATED,
 	TRIGGERED,
 	EXECUTED,
+	COMPENSATED,
 	CANCELLED,
 	REJECTED
 }

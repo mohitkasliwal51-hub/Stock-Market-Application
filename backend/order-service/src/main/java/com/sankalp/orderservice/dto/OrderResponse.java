@@ -13,6 +13,7 @@ public record OrderResponse(
 		Integer portfolioId,
 		Integer stockId,
 		Integer quantity,
+		String idempotencyKey,
 		OrderType orderType,
 		OrderSide side,
 		OrderStatus status,

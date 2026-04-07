@@ -13,5 +13,7 @@ public interface StockOrderRepository extends JpaRepository<StockOrder, Integer>
 
 	List<StockOrder> findByUserIdOrderByCreatedAtDesc(Integer userId);
 
+	java.util.Optional<StockOrder> findByUserIdAndIdempotencyKey(Integer userId, String idempotencyKey);
+
 	List<StockOrder> findByStatusInOrderByCreatedAtAsc(List<OrderStatus> statuses);
 }

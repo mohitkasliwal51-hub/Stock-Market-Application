@@ -33,6 +33,9 @@ public class StockOrder {
 	@Column(nullable = false)
 	private Integer quantity;
 
+	@Column(nullable = false, length = 120)
+	private String idempotencyKey;
+
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private OrderType orderType;
@@ -107,6 +110,14 @@ public class StockOrder {
 
 	public void setQuantity(Integer quantity) {
 		this.quantity = quantity;
+	}
+
+	public String getIdempotencyKey() {
+		return idempotencyKey;
+	}
+
+	public void setIdempotencyKey(String idempotencyKey) {
+		this.idempotencyKey = idempotencyKey;
 	}
 
 	public OrderType getOrderType() {

@@ -3,11 +3,14 @@ package com.sankalp.orderservice.service;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,11 +24,14 @@ import com.sankalp.orderservice.dto.MarketPriceResponse;
 import com.sankalp.orderservice.dto.OrderExecutionResponse;
 import com.sankalp.orderservice.dto.OrderResponse;
 import com.sankalp.orderservice.entity.OrderEventType;
+import com.sankalp.orderservice.entity.OrderOutboxEvent;
 import com.sankalp.orderservice.entity.OrderSide;
 import com.sankalp.orderservice.entity.OrderStatus;
 import com.sankalp.orderservice.entity.OrderType;
+import com.sankalp.orderservice.entity.OutboxStatus;
 import com.sankalp.orderservice.entity.StockOrder;
 import com.sankalp.orderservice.entity.StockOrderExecution;
+import com.sankalp.orderservice.repository.OrderOutboxEventRepository;
 import com.sankalp.orderservice.repository.StockOrderExecutionRepository;
 import com.sankalp.orderservice.repository.StockOrderRepository;
 
@@ -34,6 +40,8 @@ public class OrderService {
 
 	private final StockOrderRepository stockOrderRepository;
 	private final StockOrderExecutionRepository stockOrderExecutionRepository;
+	private final OrderOutboxEventRepository outboxEventRepository;
+	private final ObjectMapper objectMapper;
 	private final RestTemplate restTemplate;
 	private final String marketBaseUrl;
 	private final String walletBaseUrl;
@@ -41,12 +49,16 @@ public class OrderService {
 
 	public OrderService(StockOrderRepository stockOrderRepository,
 			StockOrderExecutionRepository stockOrderExecutionRepository,
+			OrderOutboxEventRepository outboxEventRepository,
+			ObjectMapper objectMapper,
 			RestTemplate restTemplate,
 			@Value("${hooks.market.base-url:http://localhost:8089/api/market}") String marketBaseUrl,
 			@Value("${hooks.wallet.base-url:http://localhost:8088/api/wallets}") String walletBaseUrl,
 			@Value("${hooks.portfolio.base-url:http://localhost:8087/api/portfolios}") String portfolioBaseUrl) {
 		this.stockOrderRepository = stockOrderRepository;
 		this.stockOrderExecutionRepository = stockOrderExecutionRepository;
+		this.outboxEventRepository = outboxEventRepository;
+		this.objectMapper = objectMapper;
 		this.restTemplate = restTemplate;
 		this.marketBaseUrl = marketBaseUrl;
 		this.walletBaseUrl = walletBaseUrl;
@@ -56,12 +68,19 @@ public class OrderService {
 	@Transactional
 	public OrderResponse createOrder(CreateOrderRequest request) {
 		validateOrderRequest(request);
+		Optional<StockOrder> existing = stockOrderRepository.findByUserIdAndIdempotencyKey(
+				request.getUserId(),
+				request.getIdempotencyKey().trim());
+		if (existing.isPresent()) {
+			return toResponse(existing.get());
+		}
 
 		StockOrder order = new StockOrder();
 		order.setUserId(request.getUserId());
 		order.setPortfolioId(request.getPortfolioId());
 		order.setStockId(request.getStockId());
 		order.setQuantity(request.getQuantity());
+		order.setIdempotencyKey(request.getIdempotencyKey().trim());
 		order.setOrderType(request.getOrderType());
 		order.setSide(request.getSide());
 		order.setOrderPrice(request.getOrderPrice());
@@ -81,6 +100,11 @@ public class OrderService {
 
 		StockOrder saved = stockOrderRepository.save(order);
 		recordEvent(saved, OrderEventType.CREATED, marketPrice, saved.getReferencePrice(), "Order created");
+		enqueueOutbox(saved, "ORDER_CREATED", Map.of(
+				"orderId", saved.getId(),
+				"userId", saved.getUserId(),
+				"idempotencyKey", saved.getIdempotencyKey(),
+				"status", saved.getStatus().name()));
 
 		if (request.getSide() == OrderSide.BUY) {
 			BigDecimal reserveAmount = resolveReserveAmount(request, marketPrice);
@@ -118,6 +142,9 @@ public class OrderService {
 		order.setStatus(OrderStatus.CANCELLED);
 		StockOrder saved = stockOrderRepository.save(order);
 		recordEvent(saved, OrderEventType.CANCELLED, currentMarketPrice(saved.getStockId()).orElse(null), saved.getReferencePrice(), "Order cancelled");
+		enqueueOutbox(saved, "ORDER_CANCELLED", Map.of(
+				"orderId", saved.getId(),
+				"status", saved.getStatus().name()));
 		return toResponse(saved);
 	}
 
@@ -152,6 +179,33 @@ public class OrderService {
 	@Scheduled(fixedDelayString = "${order.evaluator.fixed-delay-ms:5000}")
 	public void scheduledEvaluation() {
 		evaluatePendingOrders();
+	}
+
+	@Scheduled(fixedDelayString = "${order.outbox.fixed-delay-ms:3000}")
+	@Transactional
+	public void processOutboxEvents() {
+		Timestamp now = new Timestamp(System.currentTimeMillis());
+		List<OrderOutboxEvent> pending = outboxEventRepository.findTop50ByStatusInAndNextAttemptAtBeforeOrderByCreatedAtAsc(
+				List.of(OutboxStatus.PENDING, OutboxStatus.FAILED),
+				now);
+
+		for (OrderOutboxEvent event : pending) {
+			try {
+				event.setStatus(OutboxStatus.PROCESSING);
+				outboxEventRepository.save(event);
+				publishOutbox(event);
+				event.setStatus(OutboxStatus.PROCESSED);
+				event.setLastError(null);
+				outboxEventRepository.save(event);
+			} catch (RuntimeException ex) {
+				event.setRetryCount(event.getRetryCount() + 1);
+				event.setStatus(OutboxStatus.FAILED);
+				event.setLastError(ex.getMessage());
+				long backoffMillis = Math.min(60000L, (long) Math.pow(2, event.getRetryCount()) * 1000L);
+				event.setNextAttemptAt(new Timestamp(System.currentTimeMillis() + backoffMillis));
+				outboxEventRepository.save(event);
+			}
+		}
 	}
 
 	@Transactional(readOnly = true)
@@ -198,11 +252,18 @@ public class OrderService {
 			order.setStatus(OrderStatus.EXECUTED);
 			StockOrder saved = stockOrderRepository.save(order);
 			recordEvent(saved, OrderEventType.EXECUTED, executionPrice, saved.getReferencePrice(), source);
+			enqueueOutbox(saved, "ORDER_EXECUTED", Map.of(
+					"orderId", saved.getId(),
+					"executedPrice", executionPrice,
+					"status", saved.getStatus().name()));
 			return toResponse(saved);
 		} catch (RuntimeException ex) {
 			order.setStatus(OrderStatus.REJECTED);
 			StockOrder saved = stockOrderRepository.save(order);
 			recordEvent(saved, OrderEventType.REJECTED, executionPrice, saved.getReferencePrice(), ex.getMessage());
+			enqueueOutbox(saved, "ORDER_REJECTED", Map.of(
+					"orderId", saved.getId(),
+					"reason", ex.getMessage() == null ? "UNKNOWN" : ex.getMessage()));
 			throw ex;
 		}
 	}
@@ -210,20 +271,40 @@ public class OrderService {
 	private void handleBuyExecution(StockOrder order, BigDecimal executionPrice) {
 		BigDecimal debitAmount = executionPrice.multiply(BigDecimal.valueOf(order.getQuantity()));
 		walletHook("/hooks/order/debit", order.getUserId(), debitAmount, refFor(order), "Debit reserved for executed buy");
+		try {
+			if (order.getReservedAmount() != null && order.getReservedAmount().compareTo(debitAmount) > 0) {
+				BigDecimal release = order.getReservedAmount().subtract(debitAmount);
+				walletHook("/hooks/order/release", order.getUserId(), release, refFor(order), "Release unspent reserve");
+			}
 
-		if (order.getReservedAmount() != null && order.getReservedAmount().compareTo(debitAmount) > 0) {
-			BigDecimal release = order.getReservedAmount().subtract(debitAmount);
-			walletHook("/hooks/order/release", order.getUserId(), release, refFor(order), "Release unspent reserve");
+			portfolioTradeHook(order, executionPrice, "BUY");
+		} catch (RuntimeException ex) {
+			walletHook("/hooks/order/credit", order.getUserId(), debitAmount, refFor(order), "Compensation for failed buy execution");
+			recordEvent(order, OrderEventType.COMPENSATED, executionPrice, order.getReferencePrice(), "BUY compensation applied");
+			enqueueOutbox(order, "ORDER_COMPENSATED", Map.of(
+					"orderId", order.getId(),
+					"side", "BUY",
+					"compensation", "WALLET_CREDIT",
+					"amount", debitAmount));
+			throw ex;
 		}
-
-		portfolioTradeHook(order, executionPrice, "BUY");
 	}
 
 	private void handleSellExecution(StockOrder order, BigDecimal executionPrice) {
 		portfolioTradeHook(order, executionPrice, "SELL");
-
 		BigDecimal credit = executionPrice.multiply(BigDecimal.valueOf(order.getQuantity()));
-		walletHook("/hooks/order/credit", order.getUserId(), credit, refFor(order), "Credit proceeds for sell order");
+		try {
+			walletHook("/hooks/order/credit", order.getUserId(), credit, refFor(order), "Credit proceeds for sell order");
+		} catch (RuntimeException ex) {
+			portfolioTradeHook(order, executionPrice, "BUY");
+			recordEvent(order, OrderEventType.COMPENSATED, executionPrice, order.getReferencePrice(), "SELL compensation applied");
+			enqueueOutbox(order, "ORDER_COMPENSATED", Map.of(
+					"orderId", order.getId(),
+					"side", "SELL",
+					"compensation", "PORTFOLIO_REVERT_BUY",
+					"quantity", order.getQuantity()));
+			throw ex;
+		}
 	}
 
 	private void validateOrderRequest(CreateOrderRequest request) {
@@ -441,6 +522,7 @@ public class OrderService {
 				order.getPortfolioId(),
 				order.getStockId(),
 				order.getQuantity(),
+				order.getIdempotencyKey(),
 				order.getOrderType(),
 				order.getSide(),
 				order.getStatus(),
@@ -472,5 +554,34 @@ public class OrderService {
 		execution.setReferencePrice(referencePrice);
 		execution.setNote(note == null || note.isBlank() ? eventType.name() : note);
 		stockOrderExecutionRepository.save(execution);
+	}
+
+	private void enqueueOutbox(StockOrder order, String eventType, Map<String, Object> payload) {
+		OrderOutboxEvent event = new OrderOutboxEvent();
+		event.setAggregateType("StockOrder");
+		event.setAggregateId(order.getId());
+		event.setEventType(eventType);
+		event.setPayload(serializePayload(payload));
+		event.setStatus(OutboxStatus.PENDING);
+		event.setRetryCount(0);
+		event.setNextAttemptAt(new Timestamp(System.currentTimeMillis()));
+		outboxEventRepository.save(event);
+	}
+
+	private void publishOutbox(OrderOutboxEvent event) {
+		// Placeholder publisher for now; this is where Kafka/Rabbit/ServiceBus publish would happen.
+		if (event.getEventType() == null || event.getEventType().isBlank()) {
+			throw new IllegalStateException("Invalid outbox event type");
+		}
+	}
+
+	private String serializePayload(Map<String, Object> payload) {
+		Map<String, Object> safePayload = new HashMap<>(payload);
+		safePayload.put("publishedAt", System.currentTimeMillis());
+		try {
+			return objectMapper.writeValueAsString(safePayload);
+		} catch (JsonProcessingException ex) {
+			throw new IllegalArgumentException("Unable to serialize outbox payload", ex);
+		}
 	}
 }
