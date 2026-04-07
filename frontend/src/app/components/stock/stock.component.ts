@@ -99,7 +99,7 @@ export class StockComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err?.error?.message || err?.error?.error?.message || 'Failed to add stock';
+          this.errorMessage = err?.message || 'Failed to add stock. Please check your entries and try again.';
         this.liveAnnouncer.announceError(this.errorMessage);
         this.cdr.detectChanges();
       }

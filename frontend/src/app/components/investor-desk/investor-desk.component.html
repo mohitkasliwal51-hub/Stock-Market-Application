@@ -28,14 +28,16 @@
         <div class="card-body">
           <h5 class="card-title">Profile</h5>
           <div class="mb-2">
-            <label class="form-label">Email</label>
-            <input type="email" class="form-control" [(ngModel)]="profileEmail" placeholder="Email" />
+            <label class="form-label" for="profileEmail">Email</label>
+            <input id="profileEmail" type="email" class="form-control" [(ngModel)]="profileEmail" placeholder="Email" aria-describedby="profileEmailHelp" />
+            <div id="profileEmailHelp" class="visually-hidden">Update your account email address.</div>
           </div>
           <div>
-            <label class="form-label">New Password</label>
-            <input type="password" class="form-control" [(ngModel)]="profilePassword" placeholder="Leave blank to keep current" />
+            <label class="form-label" for="profilePassword">New Password</label>
+            <input id="profilePassword" type="password" class="form-control" [(ngModel)]="profilePassword" placeholder="Leave blank to keep current" aria-describedby="profilePasswordHelp" />
+            <div id="profilePasswordHelp" class="visually-hidden">Optional. Leave blank if you do not want to change password.</div>
           </div>
-          <button class="btn btn-outline-dark mt-3" (click)="updateProfile()">Update Profile</button>
+          <button class="btn btn-outline-dark mt-3" (click)="updateProfile()" aria-label="Update profile email or password">Update Profile</button>
         </div>
       </div>
     </div>
@@ -111,51 +113,41 @@
   <div class="card card-section mt-4">
     <div class="card-body">
       <h5 class="card-title">Place Order</h5>
-      <div class="row g-3">
-        <div class="col-md-4">
-          <label class="form-label">Stock</label>
-          <select class="form-select" [(ngModel)]="stockId">
-            <option [ngValue]="0">Select stock</option>
-            <option *ngFor="let stockOption of stockOptions" [ngValue]="stockOption.id">{{ stockOption.label }}</option>
-          </select>
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Quantity</label>
-          <input type="number" class="form-control" [(ngModel)]="quantity" min="1" />
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Side</label>
-          <select class="form-select" [(ngModel)]="side">
-            <option value="BUY">BUY</option>
-            <option value="SELL">SELL</option>
-          </select>
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Type</label>
-          <select class="form-select" [(ngModel)]="orderType">
-            <option value="MARKET">MARKET</option>
-            <option value="LIMIT">LIMIT</option>
-            <option value="STOP_LOSS">STOP_LOSS</option>
-            <option value="TAKE_PROFIT">TAKE_PROFIT</option>
-            <option value="TRAILING_STOP">TRAILING_STOP</option>
-          </select>
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Limit Price</label>
-          <input type="number" class="form-control" [(ngModel)]="orderPrice" min="0" step="0.01" />
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Trigger Price</label>
-          <input type="number" class="form-control" [(ngModel)]="triggerPrice" min="0" step="0.01" />
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Trail Amount</label>
-          <input type="number" class="form-control" [(ngModel)]="trailAmount" min="0" step="0.01" />
+      <p class="small text-muted mb-3">Open the dedicated order page with a flow already selected from the portfolio you are viewing.</p>
+      <div class="alert alert-info py-2 small mb-3" aria-live="polite">
+        Stop Loss, Take Profit, and Trailing Stop are sell-side protective flows. They only apply to shares already held in the selected portfolio.
+      </div>
+      <div *ngIf="selectedPortfolioId > 0; else selectPortfolioPrompt">
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <a class="btn btn-dark" routerLink="/place-order" [queryParams]="{ portfolioId: selectedPortfolioId }">Open Order Page</a>
+          <a class="btn btn-outline-dark" routerLink="/place-order" [queryParams]="{ portfolioId: selectedPortfolioId, flow: 'MARKET_BUY' }">Market Buy</a>
+          <a class="btn btn-outline-dark" routerLink="/place-order" [queryParams]="{ portfolioId: selectedPortfolioId, flow: 'LIMIT_BUY' }">Limit Buy</a>
         </div>
       </div>
-      <div class="mt-3">
-        <button class="btn btn-dark" (click)="placeOrder()">Submit Order</button>
+      <ng-template #selectPortfolioPrompt>
+        <p class="text-muted small mb-3">Select a portfolio above to unlock order placement options.</p>
+      </ng-template>
+      <div *ngIf="positions.length; else noHoldingActions" class="mt-2">
+        <div class="small text-uppercase text-muted mb-2">Open protection from holdings</div>
+        <div class="d-flex flex-column gap-3">
+          <div class="border rounded p-3" *ngFor="let pos of positions">
+            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+              <div>
+                <div class="fw-semibold">Stock {{ pos.stockId }}</div>
+                <div class="small text-muted">Quantity: {{ pos.quantity }} | Avg buy price: {{ pos.averageBuyPrice | number:'1.2-2' }}</div>
+              </div>
+              <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-sm btn-outline-dark" routerLink="/place-order" [queryParams]="{ portfolioId: selectedPortfolioId, stockId: pos.stockId, flow: 'STOP_LOSS_SELL' }">Stop Loss</a>
+                <a class="btn btn-sm btn-outline-dark" routerLink="/place-order" [queryParams]="{ portfolioId: selectedPortfolioId, stockId: pos.stockId, flow: 'TAKE_PROFIT_SELL' }">Take Profit</a>
+                <a class="btn btn-sm btn-outline-dark" routerLink="/place-order" [queryParams]="{ portfolioId: selectedPortfolioId, stockId: pos.stockId, flow: 'TRAILING_STOP_SELL' }">Trailing Stop</a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+      <ng-template #noHoldingActions>
+        <p class="text-muted mb-0">Select a portfolio with holdings to unlock sell-side protection buttons.</p>
+      </ng-template>
     </div>
   </div>
 

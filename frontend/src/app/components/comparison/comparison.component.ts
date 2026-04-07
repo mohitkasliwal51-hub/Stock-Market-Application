@@ -181,8 +181,8 @@ export class ComparisonComponent implements OnInit {
         this.onReset();
       },
       error: (err) => {
-        this.isLoading = false;
-        this.errorMessage = err?.error?.message || err?.error?.error?.message || 'Failed to load comparison data';
+            this.isLoading = false;
+            this.errorMessage = err?.message || 'Failed to load comparison data. Please refresh.';
         this.liveAnnouncer.announceError(this.errorMessage);
         this.cdr.detectChanges();
       }

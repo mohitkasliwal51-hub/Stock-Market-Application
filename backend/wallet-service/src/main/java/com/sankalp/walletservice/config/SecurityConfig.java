@@ -23,10 +23,7 @@ public class SecurityConfig {
 		http
 				.csrf(csrf -> csrf.disable())
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(authz -> authz
-						.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-						.requestMatchers("/api/wallets/health").permitAll()
-						.anyRequest().authenticated());
+				.authorizeHttpRequests(authz -> authz.anyRequest().permitAll());
 
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();

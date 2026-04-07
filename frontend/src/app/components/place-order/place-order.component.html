@@ -1,0 +1,131 @@
+<app-navbar [state]="state"></app-navbar>
+
+<div class="container order-page pb-5">
+  <div class="mt-4 mb-3">
+    <a routerLink="/investor" class="small text-decoration-none">Back to Investor Desk</a>
+    <h1 class="mt-2">Place Order</h1>
+    <p class="text-muted mb-0">Choose a required base flow first, then enable optional sell-side protection only when you need it.</p>
+  </div>
+
+  <div *ngIf="isLoading" class="alert alert-info">Loading order data...</div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert" aria-live="assertive" aria-atomic="true">
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="status" aria-live="polite" aria-atomic="true">
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card card-section h-100">
+        <div class="card-body">
+          <h5 class="card-title">Quick Flows</h5>
+          <div class="d-grid gap-2">
+            <button class="btn btn-outline-dark" (click)="selectQuickFlow('MARKET_BUY')">Market Buy</button>
+            <button class="btn btn-outline-dark" (click)="selectQuickFlow('LIMIT_BUY')">Limit Buy</button>
+            <button class="btn btn-outline-dark" (click)="selectQuickFlow('STOP_LOSS_SELL')">Stop Loss Sell</button>
+            <button class="btn btn-outline-dark" (click)="selectQuickFlow('TAKE_PROFIT_SELL')">Take Profit Sell</button>
+            <button class="btn btn-outline-dark" (click)="selectQuickFlow('TRAILING_STOP_SELL')">Trailing Stop Sell</button>
+          </div>
+          <hr />
+          <p class="small text-muted mb-0">{{ orderPreview }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card card-section">
+        <div class="card-body">
+          <h5 class="card-title">Main Order Form</h5>
+          <p class="small text-muted">This section is required to place any order.</p>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="orderFlow">Order Flow</label>
+              <select id="orderFlow" class="form-select" [(ngModel)]="orderFlow" (ngModelChange)="onOrderFlowChange()">
+                <option value="MARKET_BUY">Market Buy</option>
+                <option value="LIMIT_BUY">Limit Buy</option>
+                <option value="STOP_LOSS_SELL">Stop Loss Sell</option>
+                <option value="TAKE_PROFIT_SELL">Take Profit Sell</option>
+                <option value="TRAILING_STOP_SELL">Trailing Stop Sell</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="portfolio">Portfolio</label>
+              <select id="portfolio" class="form-select" [(ngModel)]="portfolioId" (ngModelChange)="onPortfolioChange($event)">
+                <option [ngValue]="0">Select portfolio</option>
+                <option *ngFor="let portfolio of portfolios" [ngValue]="portfolio.id">{{ portfolio.portfolioName }}</option>
+              </select>
+              <div class="field-hint" *ngIf="portfolioId > 0">Selected portfolio: {{ getSelectedPortfolioName() }}</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="stock">{{ isSellFlow() ? 'Stock from Holdings' : 'Stock' }}</label>
+              <select id="stock" class="form-select" [(ngModel)]="stockId">
+                <option [ngValue]="0">Select stock</option>
+                <option *ngFor="let stock of visibleStockOptions" [ngValue]="stock.id">{{ stock.label }}</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="qty">{{ isSellFlow() ? 'Quantity to Sell' : 'Quantity' }}</label>
+              <input id="qty" type="number" class="form-control" [(ngModel)]="quantity" min="1" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="side">Side</label>
+              <input id="side" class="form-control" [value]="selectedOrderSide" readonly aria-readonly="true" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="flow">Selected Flow</label>
+              <input id="flow" class="form-control" [value]="getFlowDescription()" readonly aria-readonly="true" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-section mt-4" [class.flow-buy]="!isSellFlow()" [class.flow-sell]="isSellFlow()">
+        <div class="card-body">
+          <h5 class="card-title">Optional Features</h5>
+          <p class="small text-muted">These sections are optional and only appear when you select the matching flow.</p>
+
+          <div class="row g-3" *ngIf="orderFlow === 'LIMIT_BUY'">
+            <div class="col-md-6">
+              <label class="form-label" for="limitPrice">Limit Price</label>
+              <input id="limitPrice" type="number" class="form-control" [(ngModel)]="orderPrice" min="0" step="0.01" />
+            </div>
+          </div>
+
+          <div class="row g-3" *ngIf="orderFlow === 'STOP_LOSS_SELL' || orderFlow === 'TAKE_PROFIT_SELL'">
+            <div class="col-md-6">
+              <label class="form-label" for="triggerPrice">Threshold Price</label>
+              <input id="triggerPrice" type="number" class="form-control" [(ngModel)]="triggerPrice" min="0" step="0.01" />
+              <div class="field-hint">When the market price reaches this value, the selected quantity is sold automatically.</div>
+            </div>
+          </div>
+
+          <div class="row g-3" *ngIf="orderFlow === 'TRAILING_STOP_SELL'">
+            <div class="col-md-6">
+              <label class="form-label" for="trailAmount">Trail Amount</label>
+              <input id="trailAmount" type="number" class="form-control" [(ngModel)]="trailAmount" min="0" step="0.01" />
+              <div class="field-hint">The trailing amount follows the price and triggers a sell when the threshold is met.</div>
+            </div>
+          </div>
+
+          <div class="alert alert-warning mt-3 mb-0" *ngIf="!isReady()" aria-live="polite">
+            <div class="fw-semibold small mb-1">Complete these before submitting:</div>
+            <ul class="mb-0 small ps-3">
+              <li *ngFor="let item of getChecklist()">{{ item }}</li>
+            </ul>
+          </div>
+
+          <p class="small mt-3 mb-0" aria-live="polite">{{ getUsageHint() }}</p>
+          <p class="small mt-2 mb-0 text-muted">Optional features can be added later simply by reopening this page and selecting a different flow.</p>
+
+          <button class="btn btn-dark mt-3" (click)="submitOrder()" [disabled]="!isReady()" [attr.aria-disabled]="!isReady()">Submit Order</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -132,7 +132,7 @@ export class IpoComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || err?.error?.error?.message || `Failed to delete IPO ${ipo.id} for company ${companyName} (ID ${ipo.companyId}).`;
+          this.errorMessage = err?.message || `Failed to delete IPO. Please try again.`;
         this.successMessage = '';
         this.liveAnnouncer.announceError(this.errorMessage);
       }

@@ -56,7 +56,7 @@ export class LoginComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err?.error?.message || err?.error?.error?.message || 'Invalid credentials';
+          this.errorMessage = err?.message || 'Login failed. Please check your credentials and try again.';
         this.liveAnnouncer.announceError(this.errorMessage);
       }
     });

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { LiveAnnouncerService } from 'src/app/services/live-announcer.service';
@@ -14,10 +15,12 @@ import { Company } from 'src/app/models/company-model';
 import { StockService } from 'src/app/services/stock.service';
 import { CompanyService } from 'src/app/services/company.service';
 
+type OrderFlow = 'MARKET_BUY' | 'LIMIT_BUY' | 'STOP_LOSS_SELL' | 'TAKE_PROFIT_SELL' | 'TRAILING_STOP_SELL';
+
 @Component({
   selector: 'app-investor-desk',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, RouterLink, NavbarComponent],
   templateUrl: './investor-desk.component.html',
   styleUrls: ['./investor-desk.component.css']
 })
@@ -34,8 +37,8 @@ export class InvestorDeskComponent implements OnInit {
   public executionHistoryText: string;
   public marketStatus: MarketStatus | null;
   public livePrices: LivePrice[];
-  public availableStocks: Stock[];
-  public stockOptions: Array<{ id: number; label: string }>;
+  public allStockOptions: Array<{ id: number; label: string }>;
+  public visibleStockOptions: Array<{ id: number; label: string }>;
 
   public createWalletAmount: number;
   public depositAmount: number;
@@ -44,7 +47,7 @@ export class InvestorDeskComponent implements OnInit {
   public stockId: number;
   public quantity: number;
   public side: OrderSide;
-  public orderType: OrderType;
+  public orderFlow: OrderFlow;
   public orderPrice: number | null;
   public triggerPrice: number | null;
   public trailAmount: number | null;
@@ -63,7 +66,8 @@ export class InvestorDeskComponent implements OnInit {
     private marketLiveService: MarketLiveService,
     private stockService: StockService,
     private companyService: CompanyService,
-    private liveAnnouncer: LiveAnnouncerService
+    private liveAnnouncer: LiveAnnouncerService,
+    private changeDetectorRef: ChangeDetectorRef
   ) {
     this.state = 'user';
     this.profile = null;
@@ -76,8 +80,8 @@ export class InvestorDeskComponent implements OnInit {
     this.executionHistoryText = '';
     this.marketStatus = null;
     this.livePrices = [];
-    this.availableStocks = [];
-    this.stockOptions = [];
+    this.allStockOptions = [];
+    this.visibleStockOptions = [];
 
     this.createWalletAmount = 0;
     this.depositAmount = 0;
@@ -86,7 +90,7 @@ export class InvestorDeskComponent implements OnInit {
     this.stockId = 0;
     this.quantity = 1;
     this.side = 'BUY';
-    this.orderType = 'MARKET';
+    this.orderFlow = 'MARKET_BUY';
     this.orderPrice = null;
     this.triggerPrice = null;
     this.trailAmount = null;
@@ -110,9 +114,10 @@ export class InvestorDeskComponent implements OnInit {
         this.profile = profile;
         this.profileEmail = profile.email;
         this.loadDashboard(profile.id);
+        this.changeDetectorRef.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Failed to fetch your profile';
+        this.errorMessage = err?.message || 'Failed to fetch your profile. Please refresh.';
         this.liveAnnouncer.announceError(this.errorMessage);
       }
     });
@@ -142,9 +147,10 @@ export class InvestorDeskComponent implements OnInit {
         this.profilePassword = '';
         this.successMessage = 'Profile updated successfully';
         this.liveAnnouncer.announceSuccess(this.successMessage);
+        this.changeDetectorRef.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Profile update failed';
+        this.errorMessage = err?.message || 'Profile update failed. Please try again.';
         this.liveAnnouncer.announceError(this.errorMessage);
       }
     });
@@ -160,9 +166,10 @@ export class InvestorDeskComponent implements OnInit {
         this.wallet = wallet;
         this.successMessage = 'Wallet created successfully';
         this.liveAnnouncer.announceSuccess(this.successMessage);
+        this.changeDetectorRef.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Wallet creation failed';
+        this.errorMessage = err?.message || 'Wallet creation failed. Please try again.';
         this.liveAnnouncer.announceError(this.errorMessage);
       }
     });
@@ -186,9 +193,10 @@ export class InvestorDeskComponent implements OnInit {
         this.successMessage = 'Amount deposited successfully';
         this.liveAnnouncer.announceSuccess(this.successMessage);
         this.depositAmount = 0;
+        this.changeDetectorRef.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Deposit failed';
+        this.errorMessage = err?.message || 'Deposit failed. Please try again.';
         this.liveAnnouncer.announceError(this.errorMessage);
       }
     });
@@ -209,11 +217,13 @@ export class InvestorDeskComponent implements OnInit {
         this.portfolios = [portfolio, ...this.portfolios];
         this.selectedPortfolioId = portfolio.id;
         this.positions = portfolio.positions || [];
+        this.refreshVisibleStockOptions();
         this.successMessage = 'Portfolio created successfully';
         this.liveAnnouncer.announceSuccess(this.successMessage);
+        this.changeDetectorRef.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Portfolio creation failed';
+        this.errorMessage = err?.message || 'Portfolio creation failed. Please try again.';
         this.liveAnnouncer.announceError(this.errorMessage);
       }
     });
@@ -223,14 +233,19 @@ export class InvestorDeskComponent implements OnInit {
     this.selectedPortfolioId = Number(portfolioId);
     if (!this.selectedPortfolioId) {
       this.positions = [];
+      this.refreshVisibleStockOptions();
       return;
     }
     this.portfolioService.getPositions(this.selectedPortfolioId).subscribe({
       next: (positions) => {
         this.positions = positions;
+        this.refreshVisibleStockOptions();
+        this.changeDetectorRef.detectChanges();
       },
       error: (_err) => {
         this.positions = [];
+        this.refreshVisibleStockOptions();
+        this.changeDetectorRef.detectChanges();
       }
     });
   }
@@ -248,28 +263,70 @@ export class InvestorDeskComponent implements OnInit {
     }
 
     if (this.stockId <= 0 || this.quantity <= 0) {
-      this.errorMessage = 'Please select a stock and quantity';
+      this.errorMessage = this.isSellFlow() ? 'Please select a stock and quantity to sell' : 'Please select a stock and quantity';
       this.liveAnnouncer.announceError(this.errorMessage);
       return;
     }
+
+    if (this.isSellFlow()) {
+      const holdingQuantity = this.getHoldingQuantity(this.stockId);
+      if (holdingQuantity <= 0) {
+        this.errorMessage = 'Select a stock from your current holdings for a stop loss sell flow';
+        this.liveAnnouncer.announceError(this.errorMessage);
+        return;
+      }
+      if (this.quantity > holdingQuantity) {
+        this.errorMessage = `You can only sell up to ${holdingQuantity} shares for the selected stock`;
+        this.liveAnnouncer.announceError(this.errorMessage);
+        return;
+      }
+    }
+
+    const selectedFlowType = this.getSelectedOrderType();
 
     const payload: CreateOrderRequest = {
       userId: this.profile.id,
       portfolioId: this.selectedPortfolioId,
       stockId: this.stockId,
       quantity: this.quantity,
-      orderType: this.orderType,
-      side: this.side,
+      orderType: selectedFlowType,
+      side: this.getSelectedOrderSide(),
       idempotencyKey: this.createIdempotencyKey()
     };
 
-    if (this.orderType === 'LIMIT' && this.orderPrice) {
+    if (this.orderFlow === 'LIMIT_BUY') {
+      if (!this.orderPrice || this.orderPrice <= 0) {
+        this.errorMessage = 'Limit price is required for LIMIT flow';
+        this.liveAnnouncer.announceError(this.errorMessage);
+        return;
+      }
       payload.orderPrice = this.orderPrice;
     }
-    if ((this.orderType === 'STOP_LOSS' || this.orderType === 'TAKE_PROFIT') && this.triggerPrice) {
+
+    if (this.orderFlow === 'STOP_LOSS_SELL') {
+      if (!this.triggerPrice || this.triggerPrice <= 0) {
+        this.errorMessage = 'Trigger price is required when using Stop Loss or Take Profit';
+        this.liveAnnouncer.announceError(this.errorMessage);
+        return;
+      }
       payload.triggerPrice = this.triggerPrice;
     }
-    if (this.orderType === 'TRAILING_STOP' && this.trailAmount) {
+
+    if (this.orderFlow === 'TAKE_PROFIT_SELL') {
+      if (!this.triggerPrice || this.triggerPrice <= 0) {
+        this.errorMessage = 'Trigger price is required when using Stop Loss or Take Profit';
+        this.liveAnnouncer.announceError(this.errorMessage);
+        return;
+      }
+      payload.orderPrice = this.triggerPrice;
+    }
+
+    if (this.orderFlow === 'TRAILING_STOP_SELL') {
+      if (!this.trailAmount || this.trailAmount <= 0) {
+        this.errorMessage = 'Trail amount is required for Trailing Stop';
+        this.liveAnnouncer.announceError(this.errorMessage);
+        return;
+      }
       payload.trailAmount = this.trailAmount;
     }
 
@@ -280,7 +337,7 @@ export class InvestorDeskComponent implements OnInit {
         this.refreshOrders(this.profile!.id);
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Order placement failed';
+        this.errorMessage = err?.message || 'Order placement failed. Please try again.';
         this.liveAnnouncer.announceError(this.errorMessage);
       }
     });
@@ -298,7 +355,7 @@ export class InvestorDeskComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Order cancellation failed';
+        this.errorMessage = err?.message || 'Order cancellation failed. Please try again.';
         this.liveAnnouncer.announceError(this.errorMessage);
       }
     });
@@ -327,6 +384,103 @@ export class InvestorDeskComponent implements OnInit {
     return status === 'CREATED' || status === 'OPEN' || status === 'RESERVED' || status === 'TRIGGER_PENDING';
   }
 
+  isOrderFormReady(): boolean {
+    return this.getOrderChecklist().length === 0;
+  }
+
+  getOrderChecklist(): string[] {
+    const checks: string[] = [];
+
+    if (this.selectedPortfolioId <= 0) {
+      checks.push('Select a portfolio');
+    }
+    if (this.stockId <= 0) {
+      checks.push(this.isSellFlow() ? 'Select a stock from your holdings' : 'Select a stock');
+    }
+    if (this.quantity <= 0) {
+      checks.push(this.isSellFlow() ? 'Enter quantity to sell greater than 0' : 'Enter quantity greater than 0');
+    }
+    if (this.isSellFlow() && this.stockId > 0) {
+      const holdingQuantity = this.getHoldingQuantity(this.stockId);
+      if (holdingQuantity <= 0) {
+        checks.push('Choose a stock you already own');
+      } else if (this.quantity > holdingQuantity) {
+        checks.push(`Quantity to sell cannot exceed your holding of ${holdingQuantity}`);
+      }
+    }
+    if (this.orderFlow === 'LIMIT_BUY' && (!this.orderPrice || this.orderPrice <= 0)) {
+      checks.push('Enter limit price for LIMIT flow');
+    }
+    if ((this.orderFlow === 'STOP_LOSS_SELL' || this.orderFlow === 'TAKE_PROFIT_SELL')
+      && (!this.triggerPrice || this.triggerPrice <= 0)) {
+      checks.push('Enter trigger price for selected optional feature');
+    }
+    if (this.orderFlow === 'TRAILING_STOP_SELL' && (!this.trailAmount || this.trailAmount <= 0)) {
+      checks.push('Enter trail amount for Trailing Stop');
+    }
+
+    return checks;
+  }
+
+  getOrderFlowSummary(): string {
+    if (this.orderFlow === 'MARKET_BUY') {
+      return 'Flow selected: Market buy order for a stock you want to purchase now.';
+    }
+    if (this.orderFlow === 'LIMIT_BUY') {
+      return 'Flow selected: Limit buy order with your chosen maximum price.';
+    }
+    if (this.orderFlow === 'STOP_LOSS_SELL') {
+      return 'Flow selected: Stop Loss sell order. When price reaches the threshold, the selected quantity will be sold and wallet/transactions will update automatically.';
+    }
+    if (this.orderFlow === 'TAKE_PROFIT_SELL') {
+      return 'Flow selected: Take Profit sell order. When price reaches the threshold, the selected quantity will be sold and wallet/transactions will update automatically.';
+    }
+    return 'Flow selected: Trailing Stop sell order for protecting gains while the market moves.';
+  }
+
+  getLaterFeatureGuidance(): string {
+    if (this.orderFlow === 'MARKET_BUY' || this.orderFlow === 'LIMIT_BUY') {
+      return 'Later usage: if you later want protection for shares you already own, create a new order, switch the flow to Stop Loss, Take Profit, or Trailing Stop, then select the stock from your holdings.';
+    }
+    return 'This flow protects a position you already own. You can reuse the same pattern later by choosing the protective sell flow and selecting the quantity to sell.';
+  }
+
+  onOrderFlowChanged(): void {
+    this.stockId = 0;
+    this.orderPrice = null;
+    this.triggerPrice = null;
+    this.trailAmount = null;
+    this.refreshVisibleStockOptions();
+  }
+
+  private getSelectedOrderType(): OrderType {
+    switch (this.orderFlow) {
+      case 'LIMIT_BUY':
+        return 'LIMIT';
+      case 'STOP_LOSS_SELL':
+        return 'STOP_LOSS';
+      case 'TAKE_PROFIT_SELL':
+        return 'TAKE_PROFIT';
+      case 'TRAILING_STOP_SELL':
+        return 'TRAILING_STOP';
+      default:
+        return 'MARKET';
+    }
+  }
+
+  private getSelectedOrderSide(): OrderSide {
+    return this.isSellFlow() ? 'SELL' : 'BUY';
+  }
+
+  public isSellFlow(): boolean {
+    return this.orderFlow.endsWith('_SELL');
+  }
+
+  private getHoldingQuantity(stockId: number): number {
+    const position = this.positions.find(item => item.stockId === stockId);
+    return position?.quantity || 0;
+  }
+
   private loadDashboard(userId: number): void {
     this.isLoading = true;
     forkJoin({
@@ -342,16 +496,18 @@ export class InvestorDeskComponent implements OnInit {
         this.livePrices = data.livePrices;
         this.portfolios = data.portfolios;
         this.orders = data.orders;
-        this.availableStocks = data.stocks;
-        this.stockOptions = this.buildStockOptions(data.stocks, data.companies);
+        this.allStockOptions = this.buildStockOptions(data.stocks, data.companies);
+        this.refreshVisibleStockOptions();
         if (this.portfolios.length && this.selectedPortfolioId === 0) {
           this.selectedPortfolioId = this.portfolios[0].id;
           this.positions = this.portfolios[0].positions || [];
+          this.refreshVisibleStockOptions();
         }
         this.refreshWallet(userId);
+        this.changeDetectorRef.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Failed to load investor desk data';
+        this.errorMessage = err?.message || 'Failed to load dashboard. Please refresh.';
         this.liveAnnouncer.announceError(this.errorMessage);
       },
       complete: () => {
@@ -364,9 +520,11 @@ export class InvestorDeskComponent implements OnInit {
     this.walletService.getWallet(userId).subscribe({
       next: (wallet) => {
         this.wallet = wallet;
+        this.changeDetectorRef.detectChanges();
       },
       error: (_err) => {
         this.wallet = null;
+        this.changeDetectorRef.detectChanges();
       }
     });
   }
@@ -375,8 +533,27 @@ export class InvestorDeskComponent implements OnInit {
     this.orderService.listOrders(userId).subscribe({
       next: (orders) => {
         this.orders = orders;
+        this.changeDetectorRef.detectChanges();
       }
     });
+  }
+
+  private refreshVisibleStockOptions(): void {
+    if (this.isSellFlow()) {
+      const holdings = new Map(this.positions.map(position => [position.stockId, position.quantity]));
+      this.visibleStockOptions = this.allStockOptions
+        .filter(option => holdings.has(option.id))
+        .map(option => {
+          const quantity = holdings.get(option.id) || 0;
+          return {
+            id: option.id,
+            label: `${option.label} - Holding ${quantity}`
+          };
+        });
+      return;
+    }
+
+    this.visibleStockOptions = [...this.allStockOptions];
   }
 
   private buildStockOptions(stocks: Stock[], companies: Company[]): Array<{ id: number; label: string }> {

@@ -92,7 +92,7 @@ export class CompanyComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || err?.error?.error?.message || `Failed to deactivate company ${companyName} (ID ${company.id}).`;
+          this.errorMessage = err?.message || `Failed to deactivate company. Please try again.`;
         this.successMessage = '';
         this.liveAnnouncer.announceError(this.errorMessage);
       }
@@ -159,7 +159,7 @@ export class CompanyComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || err?.error?.error?.message || `Failed to ${action} company ${companyName} (ID ${company.id}).`;
+          this.errorMessage = err?.message || `Failed to update company. Please try again.`;
         this.successMessage = '';
         this.liveAnnouncer.announceError(this.errorMessage);
       }

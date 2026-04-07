@@ -104,7 +104,7 @@ export class ExcelDataComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err?.error?.message || err?.error?.error?.message || 'Failed to upload Excel data';
+          this.errorMessage = err?.message || 'Failed to upload Excel data. Please check your file and try again.';
         this.liveAnnouncer.announceError(this.errorMessage);
       }
     });

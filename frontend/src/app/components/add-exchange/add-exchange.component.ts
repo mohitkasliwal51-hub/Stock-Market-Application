@@ -90,7 +90,7 @@ export class AddExchangeComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err?.error?.message || err?.error?.error?.message || 'Failed to save exchange';
+          this.errorMessage = err?.message || 'Failed to save exchange. Please check your entries and try again.';
         this.liveAnnouncer.announceError(this.errorMessage);
         this.cdr.detectChanges();
       }

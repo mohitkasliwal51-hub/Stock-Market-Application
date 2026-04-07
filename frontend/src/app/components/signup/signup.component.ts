@@ -58,7 +58,7 @@ export class SignupComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err?.error?.message || err?.error?.error?.message || 'Signup failed';
+          this.errorMessage = err?.message || 'Account creation failed. Please try again.';
         this.liveAnnouncer.announceError(this.errorMessage);
       }
     });

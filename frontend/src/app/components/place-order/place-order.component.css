@@ -1,0 +1,22 @@
+.order-page {
+  max-width: 1180px;
+}
+
+.card-section {
+  border: 1px solid #d9dee7;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+}
+
+.field-hint {
+  font-size: 0.78rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+.flow-buy {
+  border-left: 4px solid #1f4b99;
+}
+
+.flow-sell {
+  border-left: 4px solid #8a2d2d;
+}
