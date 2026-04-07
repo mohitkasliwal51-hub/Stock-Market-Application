@@ -51,6 +51,16 @@ public class GatewayConfig {
                         .and().method("GET", "POST")
                         .uri("lb://USER-SERVICE"))
 
+                // PORTFOLIO-SERVICE routes
+                .route("PORTFOLIO-SERVICE", r -> r.path("/api/portfolios/**")
+                        .and().method("GET", "POST", "PUT", "DELETE")
+                        .uri("lb://PORTFOLIO-SERVICE"))
+
+                // WALLET-SERVICE routes
+                .route("WALLET-SERVICE", r -> r.path("/api/wallets/**")
+                        .and().method("GET", "POST", "PUT", "DELETE")
+                        .uri("lb://WALLET-SERVICE"))
+
                 // MARKET-SERVICE routes
                 .route("MARKET-SERVICE", r -> r.path("/api/market/**")
                         .and().method("GET", "POST")
