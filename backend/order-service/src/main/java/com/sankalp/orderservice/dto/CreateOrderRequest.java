@@ -39,6 +39,9 @@ public class CreateOrderRequest {
 	@DecimalMin("0.01")
 	private BigDecimal triggerPrice;
 
+	@DecimalMin("0.01")
+	private BigDecimal trailAmount;
+
 	public Integer getUserId() {
 		return userId;
 	}
@@ -101,5 +104,13 @@ public class CreateOrderRequest {
 
 	public void setTriggerPrice(BigDecimal triggerPrice) {
 		this.triggerPrice = triggerPrice;
+	}
+
+	public BigDecimal getTrailAmount() {
+		return trailAmount;
+	}
+
+	public void setTrailAmount(BigDecimal trailAmount) {
+		this.trailAmount = trailAmount;
 	}
 }

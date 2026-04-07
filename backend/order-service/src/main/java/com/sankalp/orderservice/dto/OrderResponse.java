@@ -18,6 +18,8 @@ public record OrderResponse(
 		OrderStatus status,
 		BigDecimal orderPrice,
 		BigDecimal triggerPrice,
+		BigDecimal trailAmount,
+		BigDecimal referencePrice,
 		BigDecimal reservedAmount,
 		BigDecimal executedPrice,
 		Timestamp createdAt,

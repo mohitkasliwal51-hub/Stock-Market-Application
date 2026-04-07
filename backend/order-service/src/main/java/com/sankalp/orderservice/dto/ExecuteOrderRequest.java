@@ -15,6 +15,13 @@ public class ExecuteOrderRequest {
 		return executionPrice;
 	}
 
+	public ExecuteOrderRequest() {
+	}
+
+	public ExecuteOrderRequest(BigDecimal executionPrice) {
+		this.executionPrice = executionPrice;
+	}
+
 	public void setExecutionPrice(BigDecimal executionPrice) {
 		this.executionPrice = executionPrice;
 	}

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sankalp.orderservice.dto.CreateOrderRequest;
 import com.sankalp.orderservice.dto.ExecuteOrderRequest;
+import com.sankalp.orderservice.dto.OrderExecutionResponse;
 import com.sankalp.orderservice.dto.OrderResponse;
 import com.sankalp.orderservice.service.OrderService;
 
@@ -46,9 +47,25 @@ public class OrderController {
 		return ResponseEntity.ok(orderService.executeOrder(orderId, request));
 	}
 
+	@PostMapping("/{orderId}/cancel")
+	public ResponseEntity<OrderResponse> cancelOrder(@PathVariable Integer orderId) {
+		return ResponseEntity.ok(orderService.cancelOrder(orderId));
+	}
+
+	@PostMapping("/evaluate")
+	public ResponseEntity<Map<String, Object>> evaluatePendingOrders() {
+		int executed = orderService.evaluatePendingOrders();
+		return ResponseEntity.ok(Map.of("executed", executed, "status", "EVALUATED"));
+	}
+
 	@GetMapping("/{orderId}")
 	public ResponseEntity<OrderResponse> getOrder(@PathVariable Integer orderId) {
 		return ResponseEntity.ok(orderService.getOrder(orderId));
+	}
+
+	@GetMapping("/{orderId}/executions")
+	public ResponseEntity<List<OrderExecutionResponse>> getExecutionHistory(@PathVariable Integer orderId) {
+		return ResponseEntity.ok(orderService.getExecutionHistory(orderId));
 	}
 
 	@GetMapping

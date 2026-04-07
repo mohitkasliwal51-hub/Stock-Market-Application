@@ -52,6 +52,12 @@ public class StockOrder {
 	private BigDecimal triggerPrice;
 
 	@Column(precision = 19, scale = 2)
+	private BigDecimal trailAmount;
+
+	@Column(precision = 19, scale = 2)
+	private BigDecimal referencePrice;
+
+	@Column(precision = 19, scale = 2)
 	private BigDecimal executedPrice;
 
 	@Column(precision = 19, scale = 2)
@@ -141,6 +147,22 @@ public class StockOrder {
 
 	public void setTriggerPrice(BigDecimal triggerPrice) {
 		this.triggerPrice = triggerPrice;
+	}
+
+	public BigDecimal getTrailAmount() {
+		return trailAmount;
+	}
+
+	public void setTrailAmount(BigDecimal trailAmount) {
+		this.trailAmount = trailAmount;
+	}
+
+	public BigDecimal getReferencePrice() {
+		return referencePrice;
+	}
+
+	public void setReferencePrice(BigDecimal referencePrice) {
+		this.referencePrice = referencePrice;
 	}
 
 	public BigDecimal getExecutedPrice() {
