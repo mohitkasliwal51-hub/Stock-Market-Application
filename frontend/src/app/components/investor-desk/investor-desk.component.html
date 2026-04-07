@@ -1,0 +1,185 @@
+<app-navbar [state]="state"></app-navbar>
+
+<div class="container investor-page pb-5">
+  <div class="page-header mt-4">
+    <h1>Investor Desk</h1>
+    <p *ngIf="profile">{{ profile.username }} ({{ profile.email }})</p>
+    <p *ngIf="marketStatus" [class.open]="marketStatus.marketOpen" [class.closed]="!marketStatus.marketOpen">
+      Market: {{ marketStatus.marketOpen ? 'OPEN' : 'CLOSED' }}
+      <span *ngIf="!marketStatus.marketOpen"> - {{ marketStatus.reason }}</span>
+    </p>
+  </div>
+
+  <div *ngIf="isLoading" class="alert alert-info">Loading dashboard...</div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+
+  <div class="row g-4 mt-1">
+    <div class="col-lg-4">
+      <div class="card card-section h-100">
+        <div class="card-body">
+          <h5 class="card-title">Wallet</h5>
+          <div *ngIf="wallet; else createWalletBlock">
+            <p class="fs-4 mb-1">{{ wallet.balance | number:'1.2-2' }} {{ wallet.currency }}</p>
+            <p class="text-muted small">Last updated: {{ wallet.lastUpdated | date:'short' }}</p>
+            <div class="input-group mt-3">
+              <input type="number" class="form-control" [(ngModel)]="depositAmount" min="0" placeholder="Deposit amount" />
+              <button class="btn btn-dark" (click)="depositToWallet()">Deposit</button>
+            </div>
+          </div>
+          <ng-template #createWalletBlock>
+            <p class="text-muted">No wallet found for your profile.</p>
+            <div class="input-group mt-2">
+              <input type="number" class="form-control" [(ngModel)]="createWalletAmount" min="0" placeholder="Initial amount" />
+              <button class="btn btn-outline-dark" (click)="createWallet()">Create Wallet</button>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card card-section h-100">
+        <div class="card-body">
+          <h5 class="card-title">Portfolios</h5>
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" [(ngModel)]="portfolioName" placeholder="Portfolio name" />
+            <button class="btn btn-outline-dark" (click)="createPortfolio()">Create</button>
+          </div>
+          <select class="form-select" [ngModel]="selectedPortfolioId" (ngModelChange)="onPortfolioSelected($event)">
+            <option [ngValue]="0">Select portfolio</option>
+            <option *ngFor="let p of portfolios" [ngValue]="p.id">{{ p.portfolioName }}</option>
+          </select>
+          <div class="mt-3" *ngIf="positions.length">
+            <div class="small text-uppercase text-muted mb-2">Current positions</div>
+            <div class="position-chip" *ngFor="let pos of positions">
+              Stock {{ pos.stockId }}: {{ pos.quantity }} @ {{ pos.averageBuyPrice | number:'1.2-2' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card card-section h-100">
+        <div class="card-body">
+          <h5 class="card-title">Live Prices</h5>
+          <div class="live-feed" *ngIf="livePrices.length; else noPrices">
+            <div class="live-row" *ngFor="let price of livePrices | slice:0:8">
+              <div>
+                <strong>{{ price.stockCode }}</strong>
+                <span class="text-muted small">#{{ price.stockId }}</span>
+              </div>
+              <div [class.text-success]="price.dayChange >= 0" [class.text-danger]="price.dayChange < 0">
+                {{ price.currentPrice | number:'1.2-2' }}
+              </div>
+            </div>
+          </div>
+          <ng-template #noPrices>
+            <p class="text-muted">No live prices available.</p>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-section mt-4">
+    <div class="card-body">
+      <h5 class="card-title">Place Order</h5>
+      <div class="row g-3">
+        <div class="col-md-2">
+          <label class="form-label">Stock ID</label>
+          <input type="number" class="form-control" [(ngModel)]="stockId" min="1" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Quantity</label>
+          <input type="number" class="form-control" [(ngModel)]="quantity" min="1" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Side</label>
+          <select class="form-select" [(ngModel)]="side">
+            <option value="BUY">BUY</option>
+            <option value="SELL">SELL</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Type</label>
+          <select class="form-select" [(ngModel)]="orderType">
+            <option value="MARKET">MARKET</option>
+            <option value="LIMIT">LIMIT</option>
+            <option value="STOP_LOSS">STOP_LOSS</option>
+            <option value="TAKE_PROFIT">TAKE_PROFIT</option>
+            <option value="TRAILING_STOP">TRAILING_STOP</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Limit Price</label>
+          <input type="number" class="form-control" [(ngModel)]="orderPrice" min="0" step="0.01" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Trigger Price</label>
+          <input type="number" class="form-control" [(ngModel)]="triggerPrice" min="0" step="0.01" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Trail Amount</label>
+          <input type="number" class="form-control" [(ngModel)]="trailAmount" min="0" step="0.01" />
+        </div>
+      </div>
+      <div class="mt-3">
+        <button class="btn btn-dark" (click)="placeOrder()">Submit Order</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-section mt-4">
+    <div class="card-body">
+      <h5 class="card-title">Order History</h5>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Stock</th>
+              <th>Type</th>
+              <th>Side</th>
+              <th>Qty</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let order of orders">
+              <td>{{ order.id }}</td>
+              <td>{{ order.stockId }}</td>
+              <td>{{ order.orderType }}</td>
+              <td>{{ order.side }}</td>
+              <td>{{ order.quantity }}</td>
+              <td>{{ order.status }}</td>
+              <td>{{ order.createdAt | date:'short' }}</td>
+              <td>
+                <button class="btn btn-sm btn-outline-secondary me-2" (click)="loadExecutionHistory(order.id)">Events</button>
+                <button *ngIf="canCancelOrder(order.status)" class="btn btn-sm btn-outline-danger" (click)="cancelOrder(order.id)">Cancel</button>
+              </td>
+            </tr>
+            <tr *ngIf="!orders.length">
+              <td colspan="8" class="text-center text-muted">No orders yet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div *ngIf="selectedOrderId" class="mt-3">
+        <label class="form-label">Execution events for Order #{{ selectedOrderId }}</label>
+        <textarea class="form-control" rows="6" [value]="executionHistoryText" readonly></textarea>
+      </div>
+    </div>
+  </div>
+</div>

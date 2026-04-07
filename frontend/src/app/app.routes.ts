@@ -8,6 +8,7 @@ import { ExcelDataComponent } from './components/excel-data/excel-data.component
 import { ExchangeComponent } from './components/exchange/exchange.component';
 import { HomeComponent } from './components/home/home.component';
 import { IpoComponent } from './components/ipo/ipo.component';
+import { InvestorDeskComponent } from './components/investor-desk/investor-desk.component';
 import { LoginComponent } from './components/login/login.component';
 import { NotFoundComponent } from './components/not-found/not-found.component';
 import { SectorComponent } from './components/sector/sector.component';
@@ -27,6 +28,7 @@ export const routes: Routes = [
   { path: 'addExchange', component: AddExchangeComponent, canActivate: [adminGuard] },
   { path: 'updateExchange/:id', component: AddExchangeComponent, canActivate: [adminGuard] },
   { path: 'ipo', component: IpoComponent, canActivate: [authGuard] },
+  { path: 'investor', component: InvestorDeskComponent, canActivate: [authGuard] },
   { path: 'addIpo', component: AddIpoComponent, canActivate: [adminGuard] },
   { path: 'updateIpo/:id', component: AddIpoComponent, canActivate: [adminGuard] },
   { path: 'sector', component: SectorComponent, canActivate: [authGuard] },

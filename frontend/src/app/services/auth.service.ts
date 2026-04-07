@@ -34,6 +34,7 @@ export class AuthService {
   logout(){
     localStorage.removeItem(this.tokenStorageKey);
     localStorage.removeItem(this.userStorageKey);
+    localStorage.removeItem('stock.profile');
   }
 
   authenticate(username:string,password:string){

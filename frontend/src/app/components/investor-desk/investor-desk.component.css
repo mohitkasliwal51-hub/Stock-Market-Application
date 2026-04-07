@@ -1,0 +1,52 @@
+.investor-page {
+  max-width: 1200px;
+}
+
+.page-header h1 {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.page-header p {
+  margin-bottom: 0.15rem;
+}
+
+.page-header .open {
+  color: #1b7f4f;
+  font-weight: 600;
+}
+
+.page-header .closed {
+  color: #9a2a2a;
+  font-weight: 600;
+}
+
+.card-section {
+  border: 1px solid #d9dee7;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+}
+
+.position-chip {
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.4rem;
+  background: #f2f5f8;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.live-feed {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.live-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #edf0f3;
+}
+
+textarea.form-control {
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 0.85rem;
+}
