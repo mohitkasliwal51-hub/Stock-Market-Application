@@ -10,6 +10,11 @@ export interface UserProfile {
   role: string;
 }
 
+export interface UpdateProfilePayload {
+  email?: string;
+  password?: string;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -30,6 +35,13 @@ export class UserProfileService {
 
   getProfile(): Observable<UserProfile> {
     return this.httpClient.get<ApiResponse<UserProfile>>(this.apiUrl).pipe(
+      map(response => response.data),
+      tap(profile => localStorage.setItem(this.storageKey, JSON.stringify(profile)))
+    );
+  }
+
+  updateProfile(payload: UpdateProfilePayload): Observable<UserProfile> {
+    return this.httpClient.put<ApiResponse<UserProfile>>(this.apiUrl, payload).pipe(
       map(response => response.data),
       tap(profile => localStorage.setItem(this.storageKey, JSON.stringify(profile)))
     );

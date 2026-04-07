@@ -26,6 +26,23 @@
     <div class="col-lg-4">
       <div class="card card-section h-100">
         <div class="card-body">
+          <h5 class="card-title">Profile</h5>
+          <div class="mb-2">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" [(ngModel)]="profileEmail" placeholder="Email" />
+          </div>
+          <div>
+            <label class="form-label">New Password</label>
+            <input type="password" class="form-control" [(ngModel)]="profilePassword" placeholder="Leave blank to keep current" />
+          </div>
+          <button class="btn btn-outline-dark mt-3" (click)="updateProfile()">Update Profile</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card card-section h-100">
+        <div class="card-body">
           <h5 class="card-title">Wallet</h5>
           <div *ngIf="wallet; else createWalletBlock">
             <p class="fs-4 mb-1">{{ wallet.balance | number:'1.2-2' }} {{ wallet.currency }}</p>
@@ -95,9 +112,12 @@
     <div class="card-body">
       <h5 class="card-title">Place Order</h5>
       <div class="row g-3">
-        <div class="col-md-2">
-          <label class="form-label">Stock ID</label>
-          <input type="number" class="form-control" [(ngModel)]="stockId" min="1" />
+        <div class="col-md-4">
+          <label class="form-label">Stock</label>
+          <select class="form-select" [(ngModel)]="stockId">
+            <option [ngValue]="0">Select stock</option>
+            <option *ngFor="let stockOption of stockOptions" [ngValue]="stockOption.id">{{ stockOption.label }}</option>
+          </select>
         </div>
         <div class="col-md-2">
           <label class="form-label">Quantity</label>

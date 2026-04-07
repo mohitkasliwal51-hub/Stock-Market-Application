@@ -48,7 +48,7 @@ public class GatewayConfig {
 
                 // USER-SERVICE auth routes
                 .route("USER-SERVICE", r -> r.path("/api/auth/**")
-                        .and().method("GET", "POST")
+                        .and().method("GET", "POST", "PUT")
                         .uri("lb://USER-SERVICE"))
 
                 // PORTFOLIO-SERVICE routes

@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +14,7 @@ import com.sankalp.userservice.dto.ApiResult;
 import com.sankalp.userservice.dto.AuthResponse;
 import com.sankalp.userservice.dto.LoginRequest;
 import com.sankalp.userservice.dto.RegisterRequest;
+import com.sankalp.userservice.dto.UpdateProfileRequest;
 import com.sankalp.userservice.dto.UserProfileDto;
 import com.sankalp.userservice.service.AuthService;
 
@@ -60,6 +62,20 @@ public class AuthController {
 		} catch (IllegalArgumentException ex) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body(ApiResult.error(ex.getMessage(), "AUTH_INVALID_TOKEN"));
+		}
+	}
+
+	@PutMapping("/me")
+	public ResponseEntity<ApiResult<UserProfileDto>> updateProfile(
+			@RequestHeader("Authorization") String authorization,
+			@Valid @RequestBody UpdateProfileRequest request) {
+		try {
+			String token = authorization.startsWith("Bearer ") ? authorization.substring(7) : authorization;
+			UserProfileDto profile = authService.updateProfileFromToken(token, request);
+			return ResponseEntity.ok(ApiResult.success("Profile updated successfully", profile));
+		} catch (IllegalArgumentException ex) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(ApiResult.error(ex.getMessage(), "AUTH_PROFILE_UPDATE_FAILED"));
 		}
 	}
 }

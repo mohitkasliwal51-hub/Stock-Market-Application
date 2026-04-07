@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.sankalp.userservice.dto.AuthResponse;
 import com.sankalp.userservice.dto.LoginRequest;
 import com.sankalp.userservice.dto.RegisterRequest;
+import com.sankalp.userservice.dto.UpdateProfileRequest;
 import com.sankalp.userservice.dto.UserProfileDto;
 import com.sankalp.userservice.entity.UserAccount;
 import com.sankalp.userservice.entity.UserRole;
@@ -70,5 +71,38 @@ public class AuthService {
 		UserAccount user = userAccountRepository.findByUsername(username)
 				.orElseThrow(() -> new IllegalArgumentException("User not found"));
 		return new UserProfileDto(user.getId(), user.getUsername(), user.getEmail(), user.getRole().name());
+	}
+
+	public UserProfileDto updateProfileFromToken(String token, UpdateProfileRequest request) {
+		if (!jwtUtil.isTokenValid(token)) {
+			throw new IllegalArgumentException("Invalid or expired token");
+		}
+
+		String username = jwtUtil.extractUsername(token);
+		UserAccount user = userAccountRepository.findByUsername(username)
+				.orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+		boolean changed = false;
+
+		if (request.getEmail() != null && !request.getEmail().isBlank()) {
+			String requestedEmail = request.getEmail().trim();
+			if (!requestedEmail.equalsIgnoreCase(user.getEmail()) && userAccountRepository.existsByEmail(requestedEmail)) {
+				throw new IllegalArgumentException("Email already exists");
+			}
+			user.setEmail(requestedEmail);
+			changed = true;
+		}
+
+		if (request.getPassword() != null && !request.getPassword().isBlank()) {
+			user.setPassword(passwordEncoder.encode(request.getPassword()));
+			changed = true;
+		}
+
+		if (!changed) {
+			throw new IllegalArgumentException("At least one field (email or password) is required");
+		}
+
+		UserAccount saved = userAccountRepository.save(user);
+		return new UserProfileDto(saved.getId(), saved.getUsername(), saved.getEmail(), saved.getRole().name());
 	}
 }
