@@ -50,6 +50,11 @@ public class GatewayConfig {
                 .route("USER-SERVICE", r -> r.path("/api/auth/**")
                         .and().method("GET", "POST")
                         .uri("lb://USER-SERVICE"))
+
+                // MARKET-SERVICE routes
+                .route("MARKET-SERVICE", r -> r.path("/api/market/**")
+                        .and().method("GET", "POST")
+                        .uri("lb://MARKET-SERVICE"))
                 .build();
     }
 }

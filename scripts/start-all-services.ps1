@@ -9,7 +9,7 @@ $backendRoot = Join-Path $root 'backend'
 $frontendRoot = Join-Path $root 'frontend'
 $logRoot = Join-Path $root 'logs/live-verification'
 
-$appPorts = @(8080, 4200, 8090, 8761, 8082, 8083, 8084, 8085, 8086)
+$appPorts = @(8080, 4200, 8090, 8761, 8082, 8083, 8084, 8085, 8086, 8089)
 
 New-Item -ItemType Directory -Force -Path $logRoot | Out-Null
 
@@ -102,6 +102,7 @@ Start-ServiceProcess -Name 'sector-service' -WorkingDirectory (Join-Path $backen
 Start-ServiceProcess -Name 'company-service' -WorkingDirectory (Join-Path $backendRoot 'company-service') -Arguments @('-f', 'pom.xml', 'spring-boot:run')
 Start-ServiceProcess -Name 'user-service' -WorkingDirectory (Join-Path $backendRoot 'user-service') -Arguments @('-f', 'pom.xml', 'spring-boot:run')
 Start-ServiceProcess -Name 'excel-service' -WorkingDirectory (Join-Path $backendRoot 'excel-service') -Arguments @('-f', 'pom.xml', 'spring-boot:run')
+Start-ServiceProcess -Name 'market-service' -WorkingDirectory (Join-Path $backendRoot 'market-service') -Arguments @('-f', 'pom.xml', 'spring-boot:run')
 Start-ServiceProcess -Name 'api-gateway-service' -WorkingDirectory (Join-Path $backendRoot 'api-gateway-service') -Arguments @('-f', 'pom.xml', 'spring-boot:run')
 
 Write-Host 'Starting frontend...'
@@ -113,6 +114,7 @@ Wait-ForPort -Port 8083 -Name 'Sector service'
 Wait-ForPort -Port 8084 -Name 'Company service'
 Wait-ForPort -Port 8085 -Name 'Excel service'
 Wait-ForPort -Port 8086 -Name 'User service'
+Wait-ForPort -Port 8089 -Name 'Market service'
 Wait-ForPort -Port 8080 -Name 'API gateway'
 Wait-ForHttp -Url 'http://localhost:4200/' -Name 'Frontend'
 
