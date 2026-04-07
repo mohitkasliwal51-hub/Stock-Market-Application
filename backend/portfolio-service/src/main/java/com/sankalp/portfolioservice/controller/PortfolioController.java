@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sankalp.portfolioservice.dto.AddPositionRequest;
 import com.sankalp.portfolioservice.dto.CreatePortfolioRequest;
+import com.sankalp.portfolioservice.dto.PortfolioTradeRequest;
 import com.sankalp.portfolioservice.dto.PortfolioPositionResponse;
 import com.sankalp.portfolioservice.dto.PortfolioResponse;
 import com.sankalp.portfolioservice.service.PortfolioService;
@@ -62,5 +63,12 @@ public class PortfolioController {
 	@GetMapping("/{portfolioId}/positions")
 	public ResponseEntity<List<PortfolioPositionResponse>> getPositions(@PathVariable Integer portfolioId) {
 		return ResponseEntity.ok(portfolioService.getPositions(portfolioId));
+	}
+
+	@PostMapping("/{portfolioId}/hooks/trade")
+	public ResponseEntity<PortfolioPositionResponse> applyTrade(
+			@PathVariable Integer portfolioId,
+			@Valid @RequestBody PortfolioTradeRequest request) {
+		return ResponseEntity.ok(portfolioService.applyTrade(portfolioId, request));
 	}
 }

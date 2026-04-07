@@ -65,6 +65,11 @@ public class GatewayConfig {
                 .route("MARKET-SERVICE", r -> r.path("/api/market/**")
                         .and().method("GET", "POST")
                         .uri("lb://MARKET-SERVICE"))
+
+                // ORDER-SERVICE routes
+                .route("ORDER-SERVICE", r -> r.path("/api/orders/**")
+                        .and().method("GET", "POST", "PUT", "DELETE")
+                        .uri("lb://ORDER-SERVICE"))
                 .build();
     }
 }

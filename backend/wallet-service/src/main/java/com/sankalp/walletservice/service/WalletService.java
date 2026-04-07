@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sankalp.walletservice.dto.CreateWalletRequest;
+import com.sankalp.walletservice.dto.OrderWalletRequest;
+import com.sankalp.walletservice.dto.WalletBalanceHookResponse;
 import com.sankalp.walletservice.dto.WalletOperationRequest;
 import com.sankalp.walletservice.dto.WalletResponse;
 import com.sankalp.walletservice.dto.WalletTransactionResponse;
@@ -69,7 +71,7 @@ public class WalletService {
 	@Transactional
 	public WalletResponse withdraw(Integer userId, WalletOperationRequest request) {
 		UserWallet wallet = fetchWallet(userId);
-		if (wallet.getBalance().compareTo(request.getAmount()) < 0) {
+		if (availableBalance(wallet).compareTo(request.getAmount()) < 0) {
 			recordTransaction(wallet, WalletTransactionType.WITHDRAWAL, request.getAmount(), request.getDescription(),
 					request.getReferenceId(), WalletTransactionStatus.FAILED);
 			throw new IllegalArgumentException("Insufficient balance for withdrawal");
@@ -90,6 +92,69 @@ public class WalletService {
 		return walletTransactionRepository.findByWalletIdOrderByTransactionDateDesc(wallet.getId()).stream()
 				.map(this::toTransactionResponse)
 				.toList();
+	}
+
+	@Transactional
+	public WalletBalanceHookResponse reserveForOrder(OrderWalletRequest request) {
+		UserWallet wallet = fetchWallet(request.getUserId());
+		if (availableBalance(wallet).compareTo(request.getAmount()) < 0) {
+			recordTransaction(wallet, WalletTransactionType.ORDER_RESERVE, request.getAmount(),
+					defaultDescription(request, "Order reserve failed"), request.getOrderRef(), WalletTransactionStatus.FAILED);
+			throw new IllegalArgumentException("Insufficient available balance for reservation");
+		}
+
+		wallet.setReservedBalance(wallet.getReservedBalance().add(request.getAmount()));
+		UserWallet saved = userWalletRepository.save(wallet);
+		recordTransaction(saved, WalletTransactionType.ORDER_RESERVE, request.getAmount(),
+				defaultDescription(request, "Order amount reserved"), request.getOrderRef(), WalletTransactionStatus.COMPLETED);
+
+		return toHookResponse(saved, "RESERVE", request.getOrderRef());
+	}
+
+	@Transactional
+	public WalletBalanceHookResponse releaseReservation(OrderWalletRequest request) {
+		UserWallet wallet = fetchWallet(request.getUserId());
+		if (wallet.getReservedBalance().compareTo(request.getAmount()) < 0) {
+			recordTransaction(wallet, WalletTransactionType.ORDER_RELEASE, request.getAmount(),
+					defaultDescription(request, "Order release failed"), request.getOrderRef(), WalletTransactionStatus.FAILED);
+			throw new IllegalArgumentException("Reserved balance is lower than release amount");
+		}
+
+		wallet.setReservedBalance(wallet.getReservedBalance().subtract(request.getAmount()));
+		UserWallet saved = userWalletRepository.save(wallet);
+		recordTransaction(saved, WalletTransactionType.ORDER_RELEASE, request.getAmount(),
+				defaultDescription(request, "Order reservation released"), request.getOrderRef(), WalletTransactionStatus.COMPLETED);
+
+		return toHookResponse(saved, "RELEASE", request.getOrderRef());
+	}
+
+	@Transactional
+	public WalletBalanceHookResponse debitReserved(OrderWalletRequest request) {
+		UserWallet wallet = fetchWallet(request.getUserId());
+		if (wallet.getReservedBalance().compareTo(request.getAmount()) < 0) {
+			recordTransaction(wallet, WalletTransactionType.ORDER_DEBIT, request.getAmount(),
+					defaultDescription(request, "Order debit failed"), request.getOrderRef(), WalletTransactionStatus.FAILED);
+			throw new IllegalArgumentException("Reserved balance is lower than debit amount");
+		}
+
+		wallet.setReservedBalance(wallet.getReservedBalance().subtract(request.getAmount()));
+		wallet.setBalance(wallet.getBalance().subtract(request.getAmount()));
+		UserWallet saved = userWalletRepository.save(wallet);
+		recordTransaction(saved, WalletTransactionType.ORDER_DEBIT, request.getAmount(),
+				defaultDescription(request, "Order debited from reserved balance"), request.getOrderRef(), WalletTransactionStatus.COMPLETED);
+
+		return toHookResponse(saved, "DEBIT_RESERVED", request.getOrderRef());
+	}
+
+	@Transactional
+	public WalletBalanceHookResponse creditForOrder(OrderWalletRequest request) {
+		UserWallet wallet = fetchWallet(request.getUserId());
+		wallet.setBalance(wallet.getBalance().add(request.getAmount()));
+		UserWallet saved = userWalletRepository.save(wallet);
+		recordTransaction(saved, WalletTransactionType.ORDER_CREDIT, request.getAmount(),
+				defaultDescription(request, "Order credit"), request.getOrderRef(), WalletTransactionStatus.COMPLETED);
+
+		return toHookResponse(saved, "CREDIT", request.getOrderRef());
 	}
 
 	private UserWallet fetchWallet(Integer userId) {
@@ -128,5 +193,25 @@ public class WalletService {
 				transaction.getDescription(),
 				transaction.getReferenceId(),
 				transaction.getTransactionDate());
+	}
+
+	private WalletBalanceHookResponse toHookResponse(UserWallet wallet, String operation, String referenceId) {
+		return new WalletBalanceHookResponse(
+				wallet.getUserId(),
+				wallet.getBalance(),
+				wallet.getReservedBalance(),
+				availableBalance(wallet),
+				operation,
+				referenceId);
+	}
+
+	private BigDecimal availableBalance(UserWallet wallet) {
+		return wallet.getBalance().subtract(wallet.getReservedBalance());
+	}
+
+	private String defaultDescription(OrderWalletRequest request, String fallback) {
+		return request.getDescription() == null || request.getDescription().isBlank()
+				? fallback
+				: request.getDescription();
 	}
 }

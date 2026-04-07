@@ -63,6 +63,7 @@
     <module>config-service</module>
     <module>portfolio-service</module>
     <module>wallet-service</module>
+    <module>order-service</module>
   </modules>
   <build>
     <plugins>

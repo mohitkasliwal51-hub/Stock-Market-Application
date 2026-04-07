@@ -1,5 +1,7 @@
 package com.sankalp.portfolioservice.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -7,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sankalp.portfolioservice.dto.AddPositionRequest;
 import com.sankalp.portfolioservice.dto.CreatePortfolioRequest;
+import com.sankalp.portfolioservice.dto.PortfolioTradeRequest;
+import com.sankalp.portfolioservice.dto.TradeSide;
 import com.sankalp.portfolioservice.dto.PortfolioPositionResponse;
 import com.sankalp.portfolioservice.dto.PortfolioResponse;
 import com.sankalp.portfolioservice.entity.Portfolio;
@@ -72,6 +76,60 @@ public class PortfolioService {
 		return positionRepository.findByPortfolioId(portfolioId).stream()
 				.map(this::toPositionResponse)
 				.toList();
+	}
+
+	@Transactional
+	public PortfolioPositionResponse applyTrade(Integer portfolioId, PortfolioTradeRequest request) {
+		Portfolio portfolio = portfolioRepository.findById(portfolioId)
+				.orElseThrow(() -> new IllegalArgumentException("Portfolio not found: " + portfolioId));
+
+		PortfolioPosition position = positionRepository.findByPortfolioIdAndStockId(portfolioId, request.getStockId())
+				.orElseGet(() -> {
+					PortfolioPosition p = new PortfolioPosition();
+					p.setPortfolio(portfolio);
+					p.setStockId(request.getStockId());
+					p.setQuantity(0);
+					p.setAverageBuyPrice(BigDecimal.ZERO);
+					return p;
+				});
+
+		if (request.getSide() == TradeSide.BUY) {
+			applyBuy(position, request);
+		} else {
+			applySell(position, request);
+		}
+
+		if (position.getQuantity() == 0) {
+			positionRepository.delete(position);
+			return new PortfolioPositionResponse(null, request.getStockId(), 0, BigDecimal.ZERO, null);
+		}
+
+		return toPositionResponse(positionRepository.save(position));
+	}
+
+	private void applyBuy(PortfolioPosition position, PortfolioTradeRequest request) {
+		BigDecimal existingQty = BigDecimal.valueOf(position.getQuantity());
+		BigDecimal incomingQty = BigDecimal.valueOf(request.getQuantity());
+		BigDecimal newQty = existingQty.add(incomingQty);
+
+		BigDecimal existingCost = position.getAverageBuyPrice().multiply(existingQty);
+		BigDecimal incomingCost = request.getExecutionPrice().multiply(incomingQty);
+		BigDecimal newAvg = existingCost.add(incomingCost).divide(newQty, 2, RoundingMode.HALF_UP);
+
+		position.setQuantity(newQty.intValueExact());
+		position.setAverageBuyPrice(newAvg);
+	}
+
+	private void applySell(PortfolioPosition position, PortfolioTradeRequest request) {
+		if (position.getQuantity() < request.getQuantity()) {
+			throw new IllegalArgumentException("Insufficient portfolio quantity for sell");
+		}
+
+		int newQty = position.getQuantity() - request.getQuantity();
+		position.setQuantity(newQty);
+		if (newQty == 0) {
+			position.setAverageBuyPrice(BigDecimal.ZERO);
+		}
 	}
 
 	private PortfolioResponse toResponse(Portfolio portfolio) {

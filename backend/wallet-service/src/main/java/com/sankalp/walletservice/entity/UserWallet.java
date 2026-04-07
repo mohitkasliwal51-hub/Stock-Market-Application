@@ -26,6 +26,9 @@ public class UserWallet {
 	@Column(nullable = false, precision = 19, scale = 2)
 	private BigDecimal balance;
 
+	@Column(nullable = false, precision = 19, scale = 2)
+	private BigDecimal reservedBalance = BigDecimal.ZERO;
+
 	@Column(nullable = false)
 	private String currency = "INR";
 
@@ -73,6 +76,14 @@ public class UserWallet {
 
 	public void setCurrency(String currency) {
 		this.currency = currency;
+	}
+
+	public BigDecimal getReservedBalance() {
+		return reservedBalance;
+	}
+
+	public void setReservedBalance(BigDecimal reservedBalance) {
+		this.reservedBalance = reservedBalance;
 	}
 
 	public Timestamp getCreatedAt() {
